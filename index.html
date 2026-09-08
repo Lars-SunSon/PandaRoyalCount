@@ -44,7 +44,7 @@
   --mitleid:#f472b6;--mitleid-bg:#2d0a20;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;}
+html{height:100%;}
 body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);
   max-width:480px;margin:0 auto;min-height:100vh;
   padding-bottom:calc(130px + env(safe-area-inset-bottom, 0px));}
@@ -358,7 +358,7 @@ function renderInput(){
     </div>
     <div class="dr-result">${fmt(c.blau)}</div>
   </div>
-  <div class="dr" style="flex-wrap:wrap;padding:8px 0;">
+  <div class="dr" style="flex-wrap:wrap;padding:8px 0;position:relative;">
     <div class="dr-stripe" style="background:var(--rot);align-self:stretch;position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:0;"></div>
     <div class="dr-name" style="padding-left:15px;">Rot</div>
     <div class="dr-inputs" style="flex-wrap:wrap;gap:8px;">
