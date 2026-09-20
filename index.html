@@ -299,10 +299,11 @@ td.empty{color:var(--case-ink2);}
 
 /* ── Vollbild-Kompaktmodus ────────────────────────────────────────
    Im Vollbild passt sich die Eingabe der tatsächlichen Höhe an: alles auf
-   einen Blick, kein Scrollen. Die App wird zur Vollbild-Klappentafel –
+   einen Blick, kein Scrollen. Nur auf dem Eingabe-Tab: Hilfe und Tabelle
+   scrollen wie gewohnt. Die App wird zur Vollbild-Klappentafel –
    die Halle füllt den Screen, Reihen werden kompakter, alles skaliert
    proportional, egal ob kleines Handy oder großes Tablet. */
-:root:fullscreen, body:fullscreen{
+body:fullscreen:has(.screen-input){
   height:100%;overflow:hidden;
 }
 body:fullscreen .screen-input{
