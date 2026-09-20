@@ -20,7 +20,10 @@ Flap-Look sitzt exakt auf den Zahlen, die gelesen werden müssen, nicht auf jede
 ## Palette
 
 Objektfarben (Gehäuse, Flap-Fläche, Kategorie-Signallichter) ändern sich nicht mit
-Hell/Dunkel – nur die Halle drumherum:
+Hell/Dunkel – nur die Halle drumherum. **Text, der AUF Gehäusen sitzt (Tabelle,
+Hilfe-Karten, Tab-Leiste, Labels), ist ebenfalls an das Gehäuse gebunden**
+(`--case-ink` / `--case-ink2`) und wechselt nicht mit dem Theme – sonst entsteht
+im Hellmodus dunkle Schrift auf dunklem Gehäuse:
 
 ```css
 --wall:       #101114;  /* Bahnhofshalle, dunkel (Standard) */
@@ -30,7 +33,12 @@ Hell/Dunkel – nur die Halle drumherum:
 --flap:       #f1ecdf;  /* Klapp-Fläche */
 --ink:        #17140f;  /* Ziffern auf der Klapp-Fläche */
 --accent:     #e8a838;  /* Bahnhofs-Anzeigelicht: primäre Aktionen, aktiver Tab */
+--case-ink:   #e9e6df;  /* helle Tinte AUF Gehäusen (theme-unabhängig) */
+--case-ink2:  #8b8a86;  /* Sekundär-Tinte AUF Gehäusen (theme-unabhängig) */
 ```
+
+Regel: `--text`/`--text2` nur für Inhalte auf der Halle (`--wall`), alles auf
+`--case` nutzt `--case-ink`/`--case-ink2`.
 
 Kategorie-Signallichter (unverändert aus dem Spiel, nicht neu erfunden): Gelb `#f0bb3a`,
 Lila `#a78bfa`, Blau `#60a5fa`, Rot `#f87171`, Grün `#4ade80`, Klar `#9aa3b2`,
@@ -51,6 +59,10 @@ Mitleid `#f472b6` – je ein kleiner Punkt (Signallicht) statt einer Farbfläche
   Werts, ausgelöst über `flipEl()`.
 - **Signallicht** (`.dr-stripe`) – kleiner Punkt statt Farbbalken, Kategoriefarbe direkt
   inline gesetzt.
+- **Gesamt-Klappe** (`.total-flap`, `#hdr-total`) – Mini-Flap-Einheit im Header rechts
+  neben Kopf-Brand; zeigt die laufende Gesamtpunktzahl und flippt bei jeder
+  Wertungsänderung mit. Die Rundenanzeige (`.round-pill`) steht links, der Markenname
+  rückt in die Mitte.
 - **Gehäuse-Container** (`.die-list`, `.app-header`, `.tab-bar`, `.done-card`, `.hc`,
   `.help-rule`) – `--case`/`--case-edge`, dunkel unabhängig vom Theme.
 

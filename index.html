@@ -26,6 +26,9 @@
   --wall:#101114;--case:#1c1d22;--case-edge:#35373f;--case-shadow:rgba(0,0,0,.55);
   --flap:#f1ecdf;--ink:#17140f;--panel:rgba(255,255,255,.06);
   --border:#2c2d33;--text:#e9e6df;--text2:#8b8a86;
+  /* Textfarben AUF den dunklen Gehäusen (Tabelle, Hilfe, Tab-Leiste) –
+     ändern sich bewusst NICHT mit hell/dunkel, sonst dunkel-auf-dunkel. */
+  --case-ink:#e9e6df;--case-ink2:#8b8a86;
   --accent:#e8a838;--accent-dim:#3a2a10;--accent-fg:#1c1508;
   --gelb:#f0bb3a;--gelb-bg:rgba(240,187,58,.14);
   --lila:#a78bfa;--lila-bg:rgba(167,139,250,.14);
@@ -51,13 +54,13 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--wall);color:var
   padding-bottom:calc(130px + env(safe-area-inset-bottom, 0px));}
 
 /* Flap-Zahl: die physische Klappeinheit hinter jeder angezeigten Zahl */
-.dr-result,.rt-val,.wscore{
+.dr-result,.rt-val,.wscore,.total-flap{
   font-family:'Space Mono',ui-monospace,monospace;font-weight:700;
   font-variant-numeric:tabular-nums;background:var(--flap);color:var(--ink);
   border-radius:6px;position:relative;isolation:isolate;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 2px 5px var(--case-shadow);
 }
-.dr-result::after,.rt-val::after,.wscore::after{
+.dr-result::after,.rt-val::after,.wscore::after,.total-flap::after{
   content:'';position:absolute;left:6%;right:6%;top:50%;height:1px;
   background:rgba(0,0,0,.24);pointer-events:none;}
 .dr-result.neg{color:var(--rot);}
@@ -72,26 +75,53 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--wall);color:var
 
 /* Header */
 .app-header{background:var(--case);border-bottom:1px solid var(--case-edge);
-  padding:12px 20px;display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;display:flex;align-items:center;justify-content:space-between;
   position:sticky;top:0;z-index:10;}
 .header-brand{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.05em;color:var(--flap);}
+  text-transform:uppercase;letter-spacing:.05em;color:var(--flap);white-space:nowrap;}
 .header-brand span{color:var(--accent);}
 .round-pill{background:var(--wall);border:1px solid var(--border);border-radius:20px;
-  padding:5px 14px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;
-  font-family:'Space Mono',monospace;color:var(--text);}
+  padding:5px 10px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;
+  font-family:'Space Mono',monospace;color:var(--text);flex-shrink:0;}
 .round-pill .cur{color:var(--accent);}
+/* Laufende Gesamtpunktzahl als Mini-Klappe rechts neben der Rundenanzeige */
+.total-flap{font-size:15px;padding:3px 10px;flex-shrink:0;}
+@media(max-width:390px){
+  .app-header{padding:12px 10px;}
+  .header-brand{font-size:14px;letter-spacing:.03em;}
+  .header-brand span{display:none;}
+  .round-pill{padding:4px 8px;font-size:11px;}
+  .total-flap{font-size:13px;padding:3px 8px;}
+  .header-right{gap:5px;}
+}
 
 /* Tab bar */
 .tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;
   background:var(--case);border-top:1px solid var(--case-edge);display:flex;z-index:20;
   padding-bottom:env(safe-area-inset-bottom, 0px);}
 .tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:9px 6px 11px;border:none;background:none;cursor:pointer;color:var(--text2);
+  padding:9px 6px 11px;border:none;background:none;cursor:pointer;color:var(--case-ink2);
   font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;transition:color .15s;}
 .tab-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;
   stroke-linecap:round;stroke-linejoin:round;}
 .tab-btn.active{color:var(--accent);}
+
+/* Feste Textfarben auf dunklen Gehäusen – unabhängig vom Hell-/Dunkelmodus.
+   Tab-Leiste, Tabellen-Header/Zellen, Hilfe-Karten und Buttons auf Gehäuse
+   sitzen immer auf --case (dunkel) und brauchen deshalb immer helle Tinten. */
+.tab-bar,.tab-btn{color:var(--case-ink2);}
+.tab-bar .tab-btn.active{color:var(--accent);}
+th,td{color:var(--case-ink);}
+th{color:var(--case-ink2);}
+td.empty{color:var(--case-ink2);}
+.hc-name,.help-rule-title{color:var(--case-ink);}
+.hc-body,.help-rule-body{color:var(--case-ink2);}
+.hc-body strong{color:var(--case-ink);}
+.hc-ex{color:var(--case-ink);}
+.rnav-btn{color:var(--flap);}
+.btn-outline{color:var(--case-ink2);}
+.btn-outline:hover{color:var(--accent);}
+.total-flap-label{color:var(--case-ink2);}
 
 .screen{padding:14px 16px;}
 
@@ -126,7 +156,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--wall);color:var
 /* Signal-Licht statt Farbbalken: kleine Punktleuchte wie am Bahnsteig-Anzeiger */
 .dr-stripe{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin:0 4px 0 14px;
   align-self:center;}
-.dr-name{font-size:11px;font-weight:600;padding:0 10px;flex:0 0 62px;color:var(--text2);
+.dr-name{font-size:11px;font-weight:600;padding:0 10px;flex:0 0 62px;color:var(--case-ink2);
   font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.04em;}
 .dr-inputs{flex:1;display:flex;align-items:center;gap:6px;padding:8px 0;}
 .dr-result{padding:4px 10px;margin-right:10px;font-size:19px;
@@ -154,10 +184,10 @@ select.ds.ds-sm{min-width:54px;max-width:72px;font-size:14px;padding:0 22px 0 8p
 
 /* Labels inside row (for Rot sub-labels) */
 .dr-sublabel{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
-  color:var(--text2);white-space:nowrap;}
+  color:var(--case-ink2);white-space:nowrap;}
 
 /* Glitzer toggle in row */
-.dr-glitter{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text2);cursor:pointer;white-space:nowrap;}
+.dr-glitter{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--case-ink2);cursor:pointer;white-space:nowrap;}
 .mini-toggle{position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0;}
 .mini-toggle input{opacity:0;width:0;height:0;position:absolute;}
 .mini-slider{position:absolute;inset:0;background:var(--border);border-radius:10px;transition:background .2s;}
@@ -167,21 +197,18 @@ select.ds.ds-sm{min-width:54px;max-width:72px;font-size:14px;padding:0 22px 0 8p
 .mini-toggle input:checked~.mini-slider::before{transform:translateX(16px);}
 
 /* Multiplier badge */
-.dr-badge{font-size:11px;color:var(--text2);white-space:nowrap;font-family:'Space Mono',monospace;}
+.dr-badge{font-size:11px;color:var(--case-ink2);white-space:nowrap;font-family:'Space Mono',monospace;}
 
 /* Round total bar */
 .round-total{background:var(--case);border:1px solid var(--case-edge);border-radius:var(--r);
   padding:13px 16px;
   display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.rt-label{font-size:12px;font-weight:600;color:var(--text2);
+.rt-label{font-size:12px;font-weight:600;color:var(--case-ink2);
   font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.06em;}
 .rt-val{font-size:30px;padding:4px 16px;}
 
-/* Mitleid hint */
-.mitleid-banner{background:var(--mitleid-bg);border:1px solid var(--mitleid);border-radius:var(--rs);
-  padding:9px 13px;font-size:12px;color:var(--mitleid);margin-bottom:12px;line-height:1.5;}
 
-.btn-outline{padding:10px 20px;background:none;color:var(--text2);border:1.5px solid var(--border);
+.btn-outline{padding:10px 20px;background:none;color:var(--case-ink2);border:1.5px solid var(--border);
   border-radius:var(--rs);font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;
   text-transform:uppercase;letter-spacing:.04em;
   cursor:pointer;transition:all .15s;width:100%;padding:13px;}
@@ -208,23 +235,23 @@ select.ds.ds-sm{min-width:54px;max-width:72px;font-size:14px;padding:0 22px 0 8p
 .tbl-wrap{overflow-x:auto;border:1px solid var(--case-edge);border-radius:var(--r);margin-bottom:16px;}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;background:var(--case);}
 th,td{padding:10px 14px;text-align:right;font-size:13px;border-bottom:1px solid var(--case-edge);}
-td{font-family:'Space Mono',monospace;color:var(--text);}
+td{font-family:'Space Mono',monospace;color:var(--case-ink);}
 th{background:var(--panel);font-size:11px;font-weight:600;text-transform:uppercase;
-  letter-spacing:.06em;color:var(--text2);font-family:'Oswald',sans-serif;}
+  letter-spacing:.06em;color:var(--case-ink2);font-family:'Oswald',sans-serif;}
 th:first-child,td:first-child{text-align:left;font-family:'Oswald',sans-serif;}
-tr.cur-round td{background:var(--accent-dim);}
+tr.cur-round td{background:var(--accent-dim);color:var(--case-ink);}
 tr.total-row td{font-weight:700;font-size:15px;background:var(--panel);border-bottom:none;color:var(--flap);}
-td.empty{color:var(--text2);}
+td.empty{color:var(--case-ink2);}
 .reset-area{display:flex;justify-content:center;margin-top:12px;}
 
 /* Done */
 .done-card{text-align:center;background:var(--case);border:1px solid var(--case-edge);
   border-radius:var(--r);padding:32px 24px;margin-bottom:16px;}
 .done-card .wlabel{font-size:11px;font-weight:600;text-transform:uppercase;
-  letter-spacing:.1em;color:var(--text2);margin-bottom:14px;
+  letter-spacing:.1em;color:var(--case-ink2);margin-bottom:14px;
   font-family:'Oswald',sans-serif;}
 .done-card .wscore{font-size:44px;line-height:1.1;display:inline-block;padding:10px 26px;}
-.done-card .wpts{font-size:13px;color:var(--text2);margin-top:16px;
+.done-card .wpts{font-size:13px;color:var(--case-ink2);margin-top:16px;
   font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.04em;}
 
 /* Help */
@@ -235,25 +262,25 @@ td.empty{color:var(--text2);}
   justify-content:center;font-size:13px;font-weight:700;color:#101114;flex-shrink:0;
   font-family:'Space Mono',monospace;}
 .hc-name{font-size:14px;font-weight:700;font-family:'Oswald',sans-serif;
-  text-transform:uppercase;letter-spacing:.03em;color:var(--text);}
+  text-transform:uppercase;letter-spacing:.03em;color:var(--case-ink);}
 .hc-formula{font-size:12px;margin-top:2px;font-family:'Space Mono',monospace;}
 .hc-body{padding:10px 16px 14px;border-top:1px solid var(--case-edge);font-size:13px;
-  line-height:1.65;color:var(--text2);}
-.hc-body strong{color:var(--text);}
+  line-height:1.65;color:var(--case-ink2);}
+.hc-body strong{color:var(--case-ink);}
 .hc-ex{margin-top:8px;padding:8px 10px;background:var(--panel);border-radius:6px;
-  font-size:12px;font-family:'Space Mono',monospace;white-space:pre-line;color:var(--text);}
+  font-size:12px;font-family:'Space Mono',monospace;white-space:pre-line;color:var(--case-ink);}
 .help-rule{background:var(--case);border:1px solid var(--case-edge);border-radius:var(--r);
   padding:14px 16px;margin-bottom:8px;}
 .help-rule-title{font-size:13px;font-weight:700;margin-bottom:6px;font-family:'Oswald',sans-serif;
   text-transform:uppercase;letter-spacing:.03em;}
-.help-rule-body{font-size:13px;color:var(--text2);line-height:1.6;}
+.help-rule-body{font-size:13px;color:var(--case-ink2);line-height:1.6;}
 .section-cap{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
-  color:var(--text2);margin:18px 0 10px;font-family:'Oswald',sans-serif;}
+  color:var(--case-ink2);margin:18px 0 10px;font-family:'Oswald',sans-serif;}
 
 /* Header icon buttons */
 .header-right{display:flex;align-items:center;gap:7px;}
 .hbtn{width:34px;height:34px;border:1.5px solid var(--border);border-radius:var(--rs);
-  background:var(--wall);color:var(--text2);cursor:pointer;display:flex;
+  background:var(--wall);color:var(--case-ink2);cursor:pointer;display:flex;
   align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;padding:0;}
 .hbtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;
   stroke-linecap:round;stroke-linejoin:round;}
@@ -351,7 +378,6 @@ function renderInput(){
   const ri=state.round;
   const e=state.entries[ri];
   const c=computeEntry(e);
-  const isLast=ri===9;
 
   const dots=Array.from({length:10},(_,i)=>{
     const cls=i===ri?'active':hasData(state.entries[i])?'filled':'';
@@ -435,9 +461,6 @@ function renderInput(){
     <div class="dr-result">${fmt(c.mitleid)}</div>
   </div>`;
 
-  const mitleidBanner=!isLast
-    ?`<div class="mitleid-banner">Falls du einen Mitleidswürfel erhalten hast, seinen Wert bei „Mitleid" eintragen.</div>`:'';
-
   const onCurrentRound = state.phase!=='done' && ri===state.curRound;
   // Right side of round nav: advance button OR back-nav arrow
   const rightNav = onCurrentRound
@@ -458,7 +481,6 @@ function renderInput(){
       <span class="rt-label">Runde ${ri+1} gesamt</span>
       <span class="rt-val" id="rt-val">${fmt(c.total)}</span>
     </div>
-    ${mitleidBanner}
   </div>`;
 }
 
@@ -475,7 +497,7 @@ function renderTable(){
        ['Grün',c.gruen],['Klar',c.klar],['Mitleid',c.mitleid]]
       .filter(([,v])=>v!==0).map(([k,v])=>`${k}: ${fmt(v)}`).join(' · ');
     return`<tr class="${isCur?'cur-round':''}">
-      <td><strong>${ri+1}</strong>${breakdown?`<div style="font-size:11px;color:var(--text2);margin-top:2px;">${breakdown}</div>`:''}</td>
+      <td><strong>${ri+1}</strong>${breakdown?`<div style="font-size:11px;color:var(--case-ink2);margin-top:2px;">${breakdown}</div>`:''}</td>
       <td class="${isFuture?'empty':''}">${isFuture?'–':hd?fmt(c.total):''}</td></tr>`;
   }).join('');
   return`<div class="screen">
@@ -542,9 +564,12 @@ function renderHeader(){
   const done=state.phase==='done';
   const gt=grandTotal();
   return`<div class="app-header">
+    <div class="round-pill">${done?`Endstand`:`Runde <span class="cur">${state.curRound+1}</span>/10`}</div>
     <div class="header-brand">Panda <span>Royale</span></div>
     <div class="header-right">
-      <div class="round-pill">${done?`${fmt(gt)} Pkt`:`Runde <span class="cur">${state.curRound+1}</span>/10`}</div>
+      ${done
+        ?`<div class="wlabel">Endstand</div>`
+        :`<div class="total-flap" id="hdr-total" title="Gesamtpunktzahl">${fmt(gt)}</div>`}
       <button class="hbtn${wakeActive()?' on':''}" data-action="wake"
         title="Display anlassen" aria-label="Display anlassen"><svg viewBox="0 0 24 24">${ICON_WAKE}</svg></button>
       <button class="hbtn${fsActive()?' on':''}" data-action="fs"
@@ -598,6 +623,9 @@ function handleChange(ev){
   patchDieResult(f,e,c);
   const rtv=document.getElementById('rt-val');
   if(rtv){rtv.textContent=fmt(c.total);flipEl(rtv);}
+  // Gesamtklappe im Kopf mitziehen
+  const ht=document.getElementById('hdr-total');
+  if(ht){ht.textContent=fmt(grandTotal());flipEl(ht);}
 
   // Update formula badge for lila / blau / rot
   if(f==='lila'||f==='blau'||f==='blauGlitzer'||
