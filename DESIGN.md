@@ -19,15 +19,15 @@ Flap-Look sitzt exakt auf den Zahlen, die gelesen werden müssen, nicht auf jede
 
 ## Palette
 
-Objektfarben (Gehäuse, Flap-Fläche, Kategorie-Signallichter) ändern sich nicht mit
-Hell/Dunkel – nur die Halle drumherum. **Text, der AUF Gehäusen sitzt (Tabelle,
-Hilfe-Karten, Tab-Leiste, Labels), ist ebenfalls an das Gehäuse gebunden**
-(`--case-ink` / `--case-ink2`) und wechselt nicht mit dem Theme – sonst entsteht
-im Hellmodus dunkle Schrift auf dunklem Gehäuse:
+Objektfarben (Gehäuse, Flap-Fläche, Kategorie-Signallichter, Bedienelemente-Slots)
+ändern sich nicht mit Hell/Dunkel – nur die Halle drumherum. **Text, der AUF
+Gehäusen sitzt (Tabelle, Hilfe-Karten, Tab-Leiste, Labels), ist ebenfalls an das
+Gehäuse gebunden** (`--case-ink` / `--case-ink2`) und wechselt nicht mit dem Theme –
+sonst entsteht im Hellmodus dunkle Schrift auf dunklem Gehäuse:
 
 ```css
 --wall:       #101114;  /* Bahnhofshalle, dunkel (Standard) */
---wall-light: #dedad0;  /* Halle bei Hell-Modus (prefers-color-scheme: light) */
+--wall-light: #e3ded2;  /* Halle am Tag (Hell-Modus): heller Stein, weiches Licht */
 --case:       #1c1d22;  /* Gehäuse jeder Flap-Einheit */
 --case-edge:  #35373f;
 --flap:       #f1ecdf;  /* Klapp-Fläche */
@@ -35,10 +35,20 @@ im Hellmodus dunkle Schrift auf dunklem Gehäuse:
 --accent:     #e8a838;  /* Bahnhofs-Anzeigelicht: primäre Aktionen, aktiver Tab */
 --case-ink:   #e9e6df;  /* helle Tinte AUF Gehäusen (theme-unabhängig) */
 --case-ink2:  #8b8a86;  /* Sekundär-Tinte AUF Gehäusen (theme-unabhängig) */
+--slot:       #101114;  /* Bedienelemente als dunkle Slots (Pill, Selects, hbtn) */
+--slot-border:#2c2d33;
+--slot-ink:   #e9e6df;  --slot-ink2: #8b8a86;
 ```
 
-Regel: `--text`/`--text2` nur für Inhalte auf der Halle (`--wall`), alles auf
-`--case` nutzt `--case-ink`/`--case-ink2`.
+Regeln:
+- `--text`/`--text2` nur für Inhalte auf der Halle (`--wall`), alles auf
+  `--case` nutzt `--case-ink`/`--case-ink2`.
+- Bedienelemente (Runden-Pill, Selects, Icon-Buttons, Mini-Toggle) sind
+  **dunkle Slots** – sie gehören zur Maschine, nicht zur Halle, und sind im
+  Dunkelmodus identisch mit `--wall`.
+- Der Hellmodus ist eine eigene Tag-Umgebung (`#e3ded2` warmer Stein, eigene
+  Ränder `#d2cbb9`, weichere Schatten), keine reine Umfärbung der Dunkel-Halle.
+  Dunkelmodus bleibt unangetastet.
 
 Kategorie-Signallichter (unverändert aus dem Spiel, nicht neu erfunden): Gelb `#f0bb3a`,
 Lila `#a78bfa`, Blau `#60a5fa`, Rot `#f87171`, Grün `#4ade80`, Klar `#9aa3b2`,

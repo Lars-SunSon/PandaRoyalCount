@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="description" content="Punktezähler für das Brettspiel Panda Royale. Läuft offline, Daten bleiben auf diesem Gerät.">
-<meta name="theme-color" content="#dedad0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#e3ded2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101114" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,6 +29,10 @@
   /* Textfarben AUF den dunklen Gehäusen (Tabelle, Hilfe, Tab-Leiste) –
      ändern sich bewusst NICHT mit hell/dunkel, sonst dunkel-auf-dunkel. */
   --case-ink:#e9e6df;--case-ink2:#8b8a86;
+  /* Bedienelemente = dunkle Slots in der Halle (Runden-Pill, Selects, Icon-
+     Buttons). Im Dunkelmodus identisch mit --wall, im Hellmodus bleiben sie
+     dunkel – das Steuerteil gehört zur Maschine, nicht zur Halle. */
+  --slot:#101114;--slot-border:#2c2d33;--slot-ink:#e9e6df;--slot-ink2:#8b8a86;
   --accent:#e8a838;--accent-dim:#3a2a10;--accent-fg:#1c1508;
   --gelb:#f0bb3a;--gelb-bg:rgba(240,187,58,.14);
   --lila:#a78bfa;--lila-bg:rgba(167,139,250,.14);
@@ -40,12 +44,16 @@
   --r:14px;--rs:10px;
 }
 @media(prefers-color-scheme:light){:root:not([data-theme="dark"]){
-  --wall:#dedad0;--case:#26282e;--case-edge:#45474f;--case-shadow:rgba(0,0,0,.35);
-  --panel:rgba(0,0,0,.05);--border:#c9c4b6;--text:#211f1a;--text2:#68655d;
+  /* Tag-Seite der Bahnhofshalle: heller Stein, mehr Luft, weiches Licht.
+     Die Maschinen (Gehäuse, Flaps, Slots) bleiben dunkel. */
+  --wall:#e3ded2;--panel:rgba(0,0,0,.05);
+  --border:#d2cbb9;--text:#2e2a22;--text2:#6f6a5e;
+  --case-shadow:rgba(70,60,40,.22);
 }}
 :root[data-theme="light"]{
-  --wall:#dedad0;--case:#26282e;--case-edge:#45474f;--case-shadow:rgba(0,0,0,.35);
-  --panel:rgba(0,0,0,.05);--border:#c9c4b6;--text:#211f1a;--text2:#68655d;
+  --wall:#e3ded2;--panel:rgba(0,0,0,.05);
+  --border:#d2cbb9;--text:#2e2a22;--text2:#6f6a5e;
+  --case-shadow:rgba(70,60,40,.22);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{height:100%;}
@@ -80,9 +88,9 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--wall);color:var
 .header-brand{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;
   text-transform:uppercase;letter-spacing:.05em;color:var(--flap);white-space:nowrap;}
 .header-brand span{color:var(--accent);}
-.round-pill{background:var(--wall);border:1px solid var(--border);border-radius:20px;
+.round-pill{background:var(--slot);border:1px solid var(--slot-border);border-radius:20px;
   padding:5px 10px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;
-  font-family:'Space Mono',monospace;color:var(--text);flex-shrink:0;}
+  font-family:'Space Mono',monospace;color:var(--slot-ink);flex-shrink:0;}
 .round-pill .cur{color:var(--accent);}
 /* Laufende Gesamtpunktzahl als Mini-Klappe rechts neben der Rundenanzeige */
 .total-flap{font-size:15px;padding:3px 10px;flex-shrink:0;}
@@ -119,16 +127,14 @@ td.empty{color:var(--case-ink2);}
 .hc-body strong{color:var(--case-ink);}
 .hc-ex{color:var(--case-ink);}
 .rnav-btn{color:var(--flap);}
-.btn-outline{color:var(--case-ink2);}
-.btn-outline:hover{color:var(--accent);}
 .total-flap-label{color:var(--case-ink2);}
 
 .screen{padding:14px 16px;}
 
 /* Round navigation */
 .round-nav{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-.rnav-btn{width:38px;height:38px;border:1.5px solid var(--border);border-radius:var(--rs);
-  background:var(--case);color:var(--flap);font-size:18px;cursor:pointer;
+.rnav-btn{width:38px;height:38px;border:1.5px solid var(--slot-border);border-radius:var(--rs);
+  background:var(--slot);color:var(--flap);font-size:18px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
 .rnav-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
 .rnav-btn:disabled{opacity:.3;cursor:not-allowed;}
@@ -141,7 +147,7 @@ td.empty{color:var(--case-ink2);}
 .btn-advance:hover{opacity:.88;}
 .rnav-dots{display:flex;gap:5px;justify-content:center;margin-bottom:12px;}
 .rnav-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .15s;}
-.rnav-dot.filled{background:var(--text2);}
+.rnav-dot.filled{background:var(--slot-ink2);}
 .rnav-dot.active{background:var(--accent);width:20px;border-radius:4px;}
 
 /* Die rows — compact single-line layout */
@@ -167,10 +173,10 @@ td.empty{color:var(--case-ink2);}
 select.ds{
   appearance:none;-webkit-appearance:none;
   height:36px;
-  background:var(--wall);
-  border:1.5px solid var(--border);border-radius:var(--rs);
+  background:var(--slot);
+  border:1.5px solid var(--slot-border);border-radius:var(--rs);
   padding:0 28px 0 10px;
-  color:var(--text);
+  color:var(--slot-ink);
   font-family:'Space Mono',monospace;font-size:16px;font-weight:700;
   font-variant-numeric:tabular-nums;
   cursor:pointer;
@@ -190,7 +196,7 @@ select.ds.ds-sm{min-width:54px;max-width:72px;font-size:14px;padding:0 22px 0 8p
 .dr-glitter{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--case-ink2);cursor:pointer;white-space:nowrap;}
 .mini-toggle{position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0;}
 .mini-toggle input{opacity:0;width:0;height:0;position:absolute;}
-.mini-slider{position:absolute;inset:0;background:var(--border);border-radius:10px;transition:background .2s;}
+.mini-slider{position:absolute;inset:0;background:var(--slot-border);border-radius:10px;transition:background .2s;}
 .mini-slider::before{content:'';position:absolute;width:14px;height:14px;border-radius:50%;
   background:#fff;left:3px;top:3px;transition:transform .2s;}
 .mini-toggle input:checked~.mini-slider{background:var(--blau);}
@@ -208,7 +214,7 @@ select.ds.ds-sm{min-width:54px;max-width:72px;font-size:14px;padding:0 22px 0 8p
 .rt-val{font-size:30px;padding:4px 16px;}
 
 
-.btn-outline{padding:10px 20px;background:none;color:var(--case-ink2);border:1.5px solid var(--border);
+.btn-outline{padding:10px 20px;background:none;color:var(--text2);border:1.5px solid var(--border);
   border-radius:var(--rs);font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;
   text-transform:uppercase;letter-spacing:.04em;
   cursor:pointer;transition:all .15s;width:100%;padding:13px;}
@@ -279,8 +285,8 @@ td.empty{color:var(--case-ink2);}
 
 /* Header icon buttons */
 .header-right{display:flex;align-items:center;gap:7px;}
-.hbtn{width:34px;height:34px;border:1.5px solid var(--border);border-radius:var(--rs);
-  background:var(--wall);color:var(--case-ink2);cursor:pointer;display:flex;
+.hbtn{width:34px;height:34px;border:1.5px solid var(--slot-border);border-radius:var(--rs);
+  background:var(--slot);color:var(--slot-ink2);cursor:pointer;display:flex;
   align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;padding:0;}
 .hbtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;
   stroke-linecap:round;stroke-linejoin:round;}
