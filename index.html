@@ -519,7 +519,7 @@ function renderHelp(){
     {key:'rot',    desc:'<strong>Weiße Zahlen summieren</strong>, davon <strong>schwarze Zahlen abziehen</strong>, dann mit der <strong>Anzahl roter Würfel multiplizieren</strong>. Negative Punkte sind möglich.',ex:'Weiß: 6+5=11  Schwarz: 4+1=5\n(11−5) × 4 Würfel = 24 Punkte'},
     {key:'gruen',  desc:'Einfach alle grünen Würfel addieren.',ex:'Grün: 14 + 20 = 34 Punkte'},
     {key:'klar',   desc:'Addiere alle klaren Würfel. Außerdem darf jeder klare Würfel gegen einen Würfel eines Mitspielers <strong>getauscht</strong> werden (freiwillig).',ex:'Klar: 4 + 8 = 12 Punkte + Tauschrecht'},
-    {key:'mitleid',desc:'Nach jeder Runde erhalten die Spieler mit den <strong>niedrigsten Punkten</strong> einen Mitleidswürfel. Dieser wird in der nächsten Runde gerollt und zählt als Bonus.',ex:'Mitleidswürfel zeigt 12 → 12 Punkte'},
+    {key:'mitleid',desc:'Erhalten die Spieler mit den <strong>wenigsten Punkten in der Runde</strong> einen Mitleidswürfel. Dieser wird in der nächsten Runde gerollt und zählt als Bonus.',ex:'Mitleidswürfel zeigt 12 → 12 Punkte'},
   ];
   const cards=helpD.map(hd=>{
     const d=DICE.find(x=>x.key===hd.key);
@@ -535,12 +535,14 @@ function renderHelp(){
       <div class="help-rule-body">Alle werfen <strong>gleichzeitig einmal</strong>. Höchster gelber Gesamtwert → Panda-Token. Gleichstand → gelb nochmals werfen.</div></div>
     <div class="help-rule"><div class="help-rule-title">2. Punkte ausrechnen</div>
       <div class="help-rule-body">Jede Farbe nach Formel auswerten und hier eintragen.</div></div>
-    <div class="help-rule"><div class="help-rule-title">3. Mitleidswürfel (nicht in Runde 10)</div>
-      <div class="help-rule-body">Wer die wenigsten Punkte hat, bekommt einen Mitleidswürfel für die nächste Runde.</div></div>
+    <div class="help-rule"><div class="help-rule-title">3. Mitleidswürfel</div>
+      <div class="help-rule-body">Wer in dieser Runde die <strong>wenigsten Punkte</strong> hat, bekommt einen Mitleidswürfel für die nächste Runde.</div></div>
     <div class="help-rule"><div class="help-rule-title">4. Klare Würfel tauschen</div>
       <div class="help-rule-body">Links vom Panda-Token im Uhrzeigersinn: klare Würfel gegen beliebige Würfel anderer tauschen. Ein durch Tausch erhaltener klarer Würfel wirkt erst nach der nächsten Runde.</div></div>
-    <div class="help-rule"><div class="help-rule-title">5. Neue Würfel wählen (nicht in Runde 10)</div>
+    <div class="help-rule"><div class="help-rule-title">5. Neue Würfel wählen</div>
       <div class="help-rule-body">Panda-Token-Träger zieht Würfel: <strong>Spielerzahl + 1</strong>. Dann alle wählen nach gelber Wertung absteigend.</div></div>
+    <div class="help-rule"><div class="help-rule-title">In Runde 10</div>
+      <div class="help-rule-body">Die Schritte <strong>3 bis 5 entfallen</strong> – es wird nur noch gewürfelt, ausgezählt und gewertet. Danach endet das Spiel.</div></div>
     <div class="help-rule"><div class="help-rule-title">Spielende</div>
       <div class="help-rule-body">Nach Runde 10 alle Runden-Totals addieren. Höchste Summe gewinnt.</div></div>
   </div>`;
