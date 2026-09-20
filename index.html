@@ -192,6 +192,25 @@ select.ds{
 select.ds:focus{outline:none;border-color:var(--accent);}
 select.ds.ds-sm{min-width:54px;max-width:72px;font-size:14px;padding:0 22px 0 8px;}
 
+/* Mode-Umschalter: Auto (App rechnet die Formeln) vs Manuell (fertige Farbwerte) */
+.mode-bar{display:flex;gap:6px;margin-bottom:10px;background:var(--case);
+  border:1px solid var(--case-edge);border-radius:var(--rs);padding:4px;}
+.mode-btn{flex:1;height:34px;border:none;background:none;color:var(--case-ink2);
+  font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;cursor:pointer;border-radius:8px;
+  transition:all .15s;}
+.mode-btn.active{background:var(--accent);color:var(--accent-fg);}
+
+/* Manuelle Wert-Eingabe: fertige Farbwerte direkt eintippen */
+.mi{appearance:none;-webkit-appearance:none;height:36px;
+  background:var(--slot);border:1.5px solid var(--slot-border);border-radius:var(--rs);
+  padding:0 10px;color:var(--slot-ink);font-family:'Space Mono',monospace;font-size:16px;
+  font-weight:700;font-variant-numeric:tabular-nums;text-align:right;
+  flex:1;max-width:120px;min-width:0;}
+.mi:focus{outline:none;border-color:var(--accent);}
+.mi::-webkit-outer-spin-button,.mi::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.mi{-moz-appearance:textfield;}
+
 /* Labels inside row (for Rot sub-labels) */
 .dr-sublabel{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
   color:var(--case-ink2);white-space:nowrap;}
@@ -329,10 +348,13 @@ body.fs-compact .dr-name{font-size:9px;flex:0 0 48px;}
 body.fs-compact .dr-die{width:16px;height:16px;margin:0 3px 0 8px;}
 body:fullscreen select.ds{height:28px;font-size:14px;padding:0 22px 0 8px;max-width:100px;}
 body:fullscreen select.ds.ds-sm{height:26px;font-size:12px;min-width:44px;max-width:56px;padding:0 18px 0 6px;}
+body:fullscreen .mode-bar{margin-bottom:6px;}
+body:fullscreen .mode-btn{height:28px;font-size:11px;}
 body.fs-compact .dr-sublabel{font-size:8px;}
 body.fs-compact .dr-result{font-size:16px;padding:2px 8px;margin-right:8px;flex:0 0 52px;}
 body.fs-compact .dr-badge{font-size:9px;}
 body.fs-compact .dr-glitter{font-size:11px;gap:4px;}
+body.fs-compact .mi{height:28px;font-size:14px;padding:0 8px;}
 body.fs-compact .mini-toggle{width:30px;height:17px;}
 body.fs-compact .mini-slider{width:30px;height:17px;}
 body.fs-compact .mini-slider::before{width:11px;height:11px;left:3px;top:3px;}
@@ -375,6 +397,8 @@ const DICE=[
 
 const DEF_ENTRY=()=>({gelb:0,lila:0,blau:0,blauGlitzer:false,
   rotWeiss:0,rotSchwarz:0,rotAnzahl:0,gruen:0,klar:0,mitleid:0});
+// Manueller Modus: fertige Farbwerte (auch negativ bei Rot möglich)
+const DEF_MANUAL=()=>({gelb:0,lila:0,blau:0,rot:0,gruen:0,klar:0,mitleid:0});
 
 // ── Mini-Würfel je Kategorie ────────────────────────────────────────
 // Jede Farbe zeigt ihr eigenes Würfelgesicht (Augenzahl eindeutig je Farbe),
@@ -404,6 +428,8 @@ let state={
   curRound:0,
   phase:'game',
   entries:Array.from({length:10},()=>DEF_ENTRY()),
+  manual:Array.from({length:10},()=>DEF_MANUAL()),
+  mode:'auto', // 'auto' = App rechnet Formeln | 'manual' = fertige Farbwerte
   tab:'input',
 };
 
@@ -411,7 +437,13 @@ function saveState(){try{localStorage.setItem('pr3_state',JSON.stringify(state))
 function loadState(){
   try{
     const raw=localStorage.getItem('pr3_state');
-    if(raw){const s=JSON.parse(raw);Object.assign(state,s);}
+    if(raw){const s=JSON.parse(raw);Object.assign(state,s);
+      // Migration: alte Spielstände ohne manual-Array / mode
+      if(!Array.isArray(state.manual)||state.manual.length!==10)
+        state.manual=Array.from({length:10},()=>DEF_MANUAL());
+      state.manual=state.manual.map(m=>Object.assign(DEF_MANUAL(),m||{}));
+      if(state.mode!=='manual') state.mode='auto';
+    }
   }catch(e){}
 }
 
@@ -419,6 +451,7 @@ function loadState(){
 const num=v=>parseFloat(v)||0;
 function fmt(n){return(n<0?'−':'')+Math.abs(n).toLocaleString('de-DE');}
 
+// Auto-Modus: Würfelwerte nach Formeln ausrechnen
 function computeEntry(e){
   if(!e)return{gelb:0,lila:0,blauR:0,blau:0,rot:0,gruen:0,klar:0,mitleid:0,total:0};
   const gelb=num(e.gelb);
@@ -433,15 +466,35 @@ function computeEntry(e){
   return{gelb,lila,blauR,blau,rot,gruen,klar,mitleid,total};
 }
 
-function hasData(e){
+// Manueller Modus: fertige Farbwerte, nur summieren
+function computeManual(m){
+  if(!m)return{gelb:0,lila:0,blau:0,rot:0,gruen:0,klar:0,mitleid:0,total:0};
+  const gelb=num(m.gelb),lila=num(m.lila),blau=num(m.blau),rot=num(m.rot),
+        gruen=num(m.gruen),klar=num(m.klar),mitleid=num(m.mitleid);
+  return{gelb,lila,blau,rot,gruen,klar,mitleid,total:gelb+lila+blau+rot+gruen+klar+mitleid};
+}
+
+// Aktiver Modus entscheidet, was in Summen/Tabelle/Kopf fließt
+function entryTotal(i){
+  return state.mode==='manual'
+    ?computeManual(state.manual[i]).total
+    :computeEntry(state.entries[i]).total;
+}
+function hasData(i){
+  if(state.mode==='manual'){return hasDataManual(state.manual[i]);}
+  const e=state.entries[i];
   return num(e.gelb)||num(e.lila)||num(e.blau)||e.blauGlitzer||
     num(e.rotWeiss)||num(e.rotSchwarz)||num(e.rotAnzahl)||
     num(e.gruen)||num(e.klar)||num(e.mitleid);
 }
+function hasDataManual(m){
+  return num(m.gelb)||num(m.lila)||num(m.blau)||num(m.rot)||
+    num(m.gruen)||num(m.klar)||num(m.mitleid);
+}
 
 function grandTotal(){
   let t=0;
-  for(let r=0;r<=state.curRound;r++) t+=computeEntry(state.entries[r]).total;
+  for(let r=0;r<=state.curRound;r++) t+=entryTotal(r);
   return t;
 }
 
@@ -453,17 +506,8 @@ function opts(max,selected){
   return h;
 }
 
-// ── Render: Input screen ──────────────────────────────────────────
-function renderInput(){
-  const ri=state.round;
-  const e=state.entries[ri];
-  const c=computeEntry(e);
-
-  const dots=Array.from({length:10},(_,i)=>{
-    const cls=i===ri?'active':hasData(state.entries[i])?'filled':'';
-    return`<div class="rnav-dot ${cls}" data-action="goround" data-idx="${i}"></div>`;
-  }).join('');
-
+// ── Zeilen-Builder: Auto-Modus (Formeln) ───────────────────────────
+function autoRows(e,c){
   // Lila multiplier label
   const lilaLabel=num(e.lila)>0?`<span class="dr-badge">${num(e.lila)} × 2</span>`:'';
   // Blau glitter label
@@ -472,8 +516,7 @@ function renderInput(){
   const rotN=num(e.rotAnzahl);
   const rotDiff=num(e.rotWeiss)-num(e.rotSchwarz);
   const rotLabel=rotN>0?`<span class="dr-badge">${fmt(rotDiff)} × ${rotN}</span>`:'';
-
-  const rows=`
+  return`
   <div class="dr">
     ${dieSVG('var(--gelb)',3)}
     <div class="dr-name">Gelb</div>
@@ -540,7 +583,44 @@ function renderInput(){
     <div class="dr-inputs"><select class="ds" data-field="mitleid">${opts(30,e.mitleid)}</select></div>
     <div class="dr-result">${fmt(c.mitleid)}</div>
   </div>`;
+}
 
+// ── Zeilen-Builder: Manuell (fertige Farbwerte, negativ erlaubt) ──
+function manualRows(m){
+  const row=(key,die,face,min,max)=>{
+    const v=num(m[key]);
+    return`<div class="dr">
+    ${dieSVG(die,face)}
+    <div class="dr-name">${key==='mitleid'?'Mitleid':key.charAt(0).toUpperCase()+key.slice(1)}</div>
+    <div class="dr-inputs">
+      <input type="number" class="mi" data-mfield="${key}" min="${min}" max="${max}"
+        step="1" value="${v!==0?v:''}" placeholder="0" inputmode="numeric">
+    </div>
+    <div class="dr-result">${fmt(v)}</div>
+  </div>`;
+  };
+  return row('gelb','var(--gelb)',3,-999,999)
+    +row('lila','var(--lila)',2,-999,999)
+    +row('blau','var(--blau)',4,-999,999)
+    +row('rot','var(--rot)',5,-999,999)
+    +row('gruen','var(--gruen)',6,-999,999)
+    +row('klar','var(--klar)',1,-999,999)
+    +row('mitleid','var(--mitleid)','herz',-999,999);
+}
+
+// ── Render: Input screen ──────────────────────────────────────────
+function renderInput(){
+  const ri=state.round;
+  const manual=state.mode==='manual';
+  const e=state.entries[ri];
+  const c=manual?computeManual(state.manual[ri]):computeEntry(e);
+
+  const dots=Array.from({length:10},(_,i)=>{
+    const cls=i===ri?'active':hasData(i)?'filled':'';
+    return`<div class="rnav-dot ${cls}" data-action="goround" data-idx="${i}"></div>`;
+  }).join('');
+
+  const rows=manual?manualRows(state.manual[ri]):autoRows(e,c);
   const onCurrentRound = state.phase!=='done' && ri===state.curRound;
   // Right side of round nav: advance button OR back-nav arrow
   const rightNav = onCurrentRound
@@ -556,6 +636,10 @@ function renderInput(){
       ${rightNav}
     </div>
     <div class="rnav-dots">${dots}</div>
+    <div class="mode-bar">
+      <button class="mode-btn${manual?'':' active'}" data-action="mode" data-mode="auto">Auto</button>
+      <button class="mode-btn${manual?' active':''}" data-action="mode" data-mode="manual">Manuell</button>
+    </div>
     <div class="die-list" style="position:relative;">${rows}</div>
     <div class="round-total">
       <span class="rt-label">Runde ${ri+1} gesamt</span>
@@ -570,8 +654,8 @@ function renderTable(){
   const rows=Array.from({length:10},(_,ri)=>{
     const isCur=ri===state.round;
     const isFuture=ri>state.curRound;
-    const c=computeEntry(state.entries[ri]);
-    const hd=hasData(state.entries[ri]);
+    const c=state.mode==='manual'?computeManual(state.manual[ri]):computeEntry(state.entries[ri]);
+    const hd=hasData(ri);
     const breakdown=isFuture||!hd?'':
       [['Gelb',c.gelb],['Lila',c.lila],['Blau',c.blau],['Rot',c.rot],
        ['Grün',c.gruen],['Klar',c.klar],['Mitleid',c.mitleid]]
@@ -614,7 +698,7 @@ function renderHelp(){
     <div class="help-rule"><div class="help-rule-title">1. Würfeln &amp; Panda-Token</div>
       <div class="help-rule-body">Alle werfen <strong>gleichzeitig einmal</strong>. Höchster gelber Gesamtwert → Panda-Token. Gleichstand → gelb nochmals werfen.</div></div>
     <div class="help-rule"><div class="help-rule-title">2. Punkte ausrechnen</div>
-      <div class="help-rule-body">Jede Farbe nach Formel auswerten und hier eintragen.</div></div>
+      <div class="help-rule-body">Jede Farbe nach Formel auswerten und eintragen – im <strong>Auto-Modus</strong> rechnet die App die Formeln, im <strong>Manuell-Modus</strong> trägst du die fertigen Farbwerte selbst ein. Rundensumme und Gesamtwert rechnet die App immer automatisch.</div></div>
     <div class="help-rule"><div class="help-rule-title">3. Mitleidswürfel (nicht in Runde 10)</div>
       <div class="help-rule-body">Wer in dieser Runde die <strong>wenigsten Punkte</strong> hat, bekommt einen Mitleidswürfel für die nächste Runde.</div></div>
     <div class="help-rule"><div class="help-rule-title">4. Klare Würfel tauschen (nicht in Runde 10)</div>
@@ -688,12 +772,34 @@ function render(){
 // ── Event handling ─────────────────────────────────────────────────
 function attachHandlers(){
   const app=document.getElementById('app');
-  app.addEventListener('change',handleChange,{once:true});
-  app.addEventListener('click',handleClick,{once:true});
+  app.addEventListener('change',handleChange);
+  app.addEventListener('click',handleClick);
+}
+
+// Manuell-Modus: fertigen Farbwert speichern, Zeilen-Flap + Summen live patchen
+function handleManualInput(ev){
+  const el=ev.target;
+  const f=el.dataset.mfield;
+  if(!f)return;
+  const m=state.manual[state.round];
+  m[f]=num(el.value);
+  saveState();
+  const c=computeManual(m);
+  // Zeilen-Flap aktualisieren
+  const row=el.closest('.dr');
+  const rv=row&&row.querySelector('.dr-result');
+  if(rv){rv.textContent=fmt(c[f]);rv.className='dr-result'+(c[f]<0?' neg':'');flipEl(rv);}
+  // Rundensumme + Gesamtklappe
+  const rtv=document.getElementById('rt-val');
+  if(rtv){rtv.textContent=fmt(c.total);flipEl(rtv);}
+  const ht=document.getElementById('hdr-total');
+  if(ht){ht.textContent=fmt(grandTotal());flipEl(ht);}
 }
 
 function handleChange(ev){
-  document.getElementById('app').addEventListener('change',handleChange,{once:true});
+  document.getElementById('app').addEventListener('change',handleChange);
+  // Manuell-Modus: number-Inputs haben kein data-field, sondern data-mfield
+  if(ev.target.dataset&&ev.target.dataset.mfield){handleManualInput(ev);return;}
   const el=ev.target;
   const f=el.dataset.field;
   if(!f)return;
@@ -770,6 +876,23 @@ function handleClick(ev){
   if(!el)return;
   const a=el.dataset.action;
   if(a==='tab'){state.tab=el.dataset.tab;saveState();render();}
+  else if(a==='mode'){
+    // Moduswechsel: Auto-Werte als Startpunkt ins Manuell-Blatt übernehmen,
+    // damit Summen gleich weiterlaufen (nur wenn Manuell-Blatt noch leer)
+    if(el.dataset.mode!==state.mode){
+      state.mode=el.dataset.mode;
+      if(state.mode==='manual'){
+        const ri=state.round;
+        const m=state.manual[ri];
+        if(!hasDataManual(m)){
+          const c=computeEntry(state.entries[ri]);
+          m.gelb=c.gelb;m.lila=c.lila;m.blau=c.blau;m.rot=c.rot;
+          m.gruen=c.gruen;m.klar=c.klar;m.mitleid=c.mitleid;
+        }
+      }
+      saveState();render();
+    }
+  }
   else if(a==='prevround'){if(state.round>0){state.round--;saveState();render();}}
   else if(a==='nextround-nav'){if(state.round<state.curRound){state.round++;saveState();render();}}
   else if(a==='goround'){const i=+el.dataset.idx;if(i<=state.curRound){state.round=i;saveState();render();}}
@@ -782,8 +905,9 @@ function handleClick(ev){
   else if(a==='wake'){toggleWake();}
   else if(a==='fs'){toggleFS();}
   else if(a==='reset'){
-    state={round:0,curRound:0,phase:'game',
-      entries:Array.from({length:10},()=>DEF_ENTRY()),tab:'input'};
+    state={round:0,curRound:0,phase:'game',mode:state.mode,
+      entries:Array.from({length:10},()=>DEF_ENTRY()),
+      manual:Array.from({length:10},()=>DEF_MANUAL()),tab:'input'};
     saveState();render();
   }
 }

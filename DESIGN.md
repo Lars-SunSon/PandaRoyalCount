@@ -75,6 +75,10 @@ Mitleid `#f472b6` – je ein kleiner Punkt (Signallicht) statt einer Farbfläche
   Mini-Würfel-SVGs statt Farb-Punkte, jede Farbe mit eindeutigem Gesicht: Gelb 3,
   Lila 2, Blau 4, Rot 5, Grün 6, Klar 1 Augen, Mitleid ein Herz. Pips in
   `DIE_PIPS`, Zuordnung in `DIE_FACE` (dieselben Gesichter in Eingabe und Hilfe).
+- **Modus-Leiste** (`.mode-bar`, `.mode-btn`) – Umschalter Auto/Manuell über der
+  Werteliste; aktiver Modus als Akzent-Button im Gehäuse-Container.
+- **Manuelle Werteingabe** (`.mi`) – number-Feld pro Farbe im Manuell-Modus,
+  negativ erlaubt (Rot kann Minuspunkte haben), Slot-Look wie die Selects.
 - **Gehäuse-Container** (`.die-list`, `.app-header`, `.tab-bar`, `.done-card`, `.hc`,
   `.help-rule`) – `--case`/`--case-edge`, dunkel unabhängig vom Theme.
 
