@@ -67,12 +67,14 @@ Mitleid `#f472b6` – je ein kleiner Punkt (Signallicht) statt einer Farbfläche
 - **Flap-Zahl** (`.dr-result`, `.rt-val`, `.wscore`) – cremefarbene Fläche, dünne
   Scharnier-Linie via `::after`, Klapp-Animation (`flapflip`, 0.34s) beim Ändern eines
   Werts, ausgelöst über `flipEl()`.
-- **Signallicht** (`.dr-stripe`) – kleiner Punkt statt Farbbalken, Kategoriefarbe direkt
-  inline gesetzt.
 - **Gesamt-Klappe** (`.total-flap`, `#hdr-total`) – Mini-Flap-Einheit im Header rechts
   neben Kopf-Brand; zeigt die laufende Gesamtpunktzahl und flippt bei jeder
   Wertungsänderung mit. Die Rundenanzeige (`.round-pill`) steht links, der Markenname
-  rückt in die Mitte.
+  in der Mitte.
+- **Kategorie-Würfel** (`dieSVG()`, `.dr-die` in Eingabe, `.hc-die` in Hilfe) –
+  Mini-Würfel-SVGs statt Farb-Punkte, jede Farbe mit eindeutigem Gesicht: Gelb 3,
+  Lila 2, Blau 4, Rot 5, Grün 6, Klar 1 Augen, Mitleid ein Herz. Pips in
+  `DIE_PIPS`, Zuordnung in `DIE_FACE` (dieselben Gesichter in Eingabe und Hilfe).
 - **Gehäuse-Container** (`.die-list`, `.app-header`, `.tab-bar`, `.done-card`, `.hc`,
   `.help-rule`) – `--case`/`--case-edge`, dunkel unabhängig vom Theme.
 
@@ -80,6 +82,15 @@ Mitleid `#f472b6` – je ein kleiner Punkt (Signallicht) statt einer Farbfläche
 
 Eine Klapp-Animation (`flapflip`) beim Live-Update einer Flap-Zahl – `rotateX`-basiert,
 simuliert eine physische Klappe. Respektiert `prefers-reduced-motion`.
+
+## Fullscreen-Kompaktmodus
+
+Im Vollbild passt die komplette Eingabe ohne Scrollen auf einen Screen. Die
+Kompaktregeln (30 Stück) hängen an der **Body-Klasse `fs-compact`**, die `render()`
+setzt: nur wenn Vollbild aktiv **und** Eingabe-Tab **und** Phase ≠ done. Bewusst per
+JS-Klasse statt `:has()`-Selektor (wird nicht überall unterstützt) – Hilfe und
+Tabelle bleiben im Vollbild normal scrollbar. Die 7 Würfelreihen teilen sich die
+Resthöhe per Flex (`flex:1`, Rot-Zeile `flex:1.6`).
 
 ## Constraints
 
