@@ -303,57 +303,57 @@ td.empty{color:var(--case-ink2);}
    scrollen wie gewohnt. Die App wird zur Vollbild-Klappentafel –
    die Halle füllt den Screen, Reihen werden kompakter, alles skaliert
    proportional, egal ob kleines Handy oder großes Tablet. */
-body:fullscreen:has(.screen-input){
+body.fs-compact{
   height:100%;overflow:hidden;
 }
-body:fullscreen .screen-input{
+body.fs-compact .screen-input{
   height:calc(100vh - 60px - 46px); /* Kopf (60px) + Tab-Leiste (46px) raus */
   padding:8px 12px 4px;
   display:flex;flex-direction:column;
   overflow:hidden;
 }
-body:fullscreen .round-nav{margin-bottom:4px;}
-body:fullscreen .rnav-dots{margin-bottom:8px;}
-body:fullscreen .die-list{
+body.fs-compact .round-nav{margin-bottom:4px;}
+body.fs-compact .rnav-dots{margin-bottom:8px;}
+body.fs-compact .die-list{
   flex:1;                          /* nimmt die Resthöhe zwischen Dots und Summe */
   display:flex;flex-direction:column;
   margin-bottom:8px;min-height:0;
 }
-body:fullscreen .dr{
+body.fs-compact .dr{
   flex:1;min-height:0;             /* 7 Zeilen teilen sich die Höhe fair */
   border-bottom:1px solid var(--case-edge);
   min-height:34px;
 }
-body:fullscreen .dr:last-child{border-bottom:none;}
-body:fullscreen .dr-name{font-size:9px;flex:0 0 48px;}
-body:fullscreen .dr-die{width:16px;height:16px;margin:0 3px 0 8px;}
+body.fs-compact .dr:last-child{border-bottom:none;}
+body.fs-compact .dr-name{font-size:9px;flex:0 0 48px;}
+body.fs-compact .dr-die{width:16px;height:16px;margin:0 3px 0 8px;}
 body:fullscreen select.ds{height:28px;font-size:14px;padding:0 22px 0 8px;max-width:100px;}
 body:fullscreen select.ds.ds-sm{height:26px;font-size:12px;min-width:44px;max-width:56px;padding:0 18px 0 6px;}
-body:fullscreen .dr-sublabel{font-size:8px;}
-body:fullscreen .dr-result{font-size:16px;padding:2px 8px;margin-right:8px;flex:0 0 52px;}
-body:fullscreen .dr-badge{font-size:9px;}
-body:fullscreen .dr-glitter{font-size:11px;gap:4px;}
-body:fullscreen .mini-toggle{width:30px;height:17px;}
-body:fullscreen .mini-slider{width:30px;height:17px;}
-body:fullscreen .mini-slider::before{width:11px;height:11px;left:3px;top:3px;}
-body:fullscreen .mini-toggle input:checked~.mini-slider::before{transform:translateX(13px);}
+body.fs-compact .dr-sublabel{font-size:8px;}
+body.fs-compact .dr-result{font-size:16px;padding:2px 8px;margin-right:8px;flex:0 0 52px;}
+body.fs-compact .dr-badge{font-size:9px;}
+body.fs-compact .dr-glitter{font-size:11px;gap:4px;}
+body.fs-compact .mini-toggle{width:30px;height:17px;}
+body.fs-compact .mini-slider{width:30px;height:17px;}
+body.fs-compact .mini-slider::before{width:11px;height:11px;left:3px;top:3px;}
+body.fs-compact .mini-toggle input:checked~.mini-slider::before{transform:translateX(13px);}
 /* Rot-Zeile: braucht im Kompaktmodus u.U. eine zweite Mikro-Zeile */
-body:fullscreen .dr-rot{flex-wrap:wrap;align-items:flex-start;padding:4px 0 4px 4px;flex:1.6;}
-body:fullscreen .dr-rot .dr-inputs{flex-wrap:wrap;gap:4px;padding:2px 0;}
-body:fullscreen .dr-rot .dr-name{padding-left:15px;}
-body:fullscreen .dr-rot .dr-die{align-self:flex-start;margin-top:2px;}
-body:fullscreen .dr-rot .dr-result{padding-right:14px;}
-body:fullscreen .round-total{padding:8px 14px;margin-bottom:0;}
-body:fullscreen .rt-val{font-size:24px;padding:2px 12px;}
-body:fullscreen .rt-label{font-size:11px;}
+body.fs-compact .dr-rot{flex-wrap:wrap;align-items:flex-start;padding:4px 0 4px 4px;flex:1.6;}
+body.fs-compact .dr-rot .dr-inputs{flex-wrap:wrap;gap:4px;padding:2px 0;}
+body.fs-compact .dr-rot .dr-name{padding-left:15px;}
+body.fs-compact .dr-rot .dr-die{align-self:flex-start;margin-top:2px;}
+body.fs-compact .dr-rot .dr-result{padding-right:14px;}
+body.fs-compact .round-total{padding:8px 14px;margin-bottom:0;}
+body.fs-compact .rt-val{font-size:24px;padding:2px 12px;}
+body.fs-compact .rt-label{font-size:11px;}
 /* Tab-Leiste bleibt, schrumpft leicht */
-body:fullscreen .tab-bar{position:fixed;bottom:0;}
-body:fullscreen .tab-btn{padding:6px 6px 8px;}
-body:fullscreen .tab-btn svg{width:19px;height:19px;}
-body:fullscreen .tab-btn{font-size:10px;}
+body.fs-compact .tab-bar{position:fixed;bottom:0;}
+body.fs-compact .tab-btn{padding:6px 6px 8px;}
+body.fs-compact .tab-btn svg{width:19px;height:19px;}
+body.fs-compact .tab-btn{font-size:10px;}
 /* Sehr flache Screens (z. B. Handy quer): Kopf-Markierung ausblenden */
 @media(max-height:480px){
-  body:fullscreen .header-brand{display:none;}
+  body.fs-compact .header-brand{display:none;}
 }
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;}}
@@ -678,6 +678,10 @@ function render(){
   else if(state.phase==='done') screen=renderDoneCard();
   else screen=renderInput();
   app.innerHTML=renderHeader()+screen+renderTabBar();
+  // Vollbild-Kompaktmodus als Body-Klasse markieren: nur Vollbild UND
+  // Eingabe-Tab. Robust gegen fehlende :has()-Unterstützung.
+  const compact=fsActive()&&state.tab==='input'&&state.phase!=='done';
+  document.body.classList.toggle('fs-compact',compact);
   attachHandlers();
 }
 
