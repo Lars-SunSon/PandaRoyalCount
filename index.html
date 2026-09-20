@@ -159,9 +159,13 @@ td.empty{color:var(--case-ink2);}
   min-height:52px;position:relative;}
 .dr:last-child{border-bottom:none;}
 
-/* Signal-Licht statt Farbbalken: kleine Punktleuchte wie am Bahnsteig-Anzeiger */
-.dr-stripe{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin:0 4px 0 14px;
-  align-self:center;}
+/* Mini-Würfel statt Punkt: jede Kategorie zeigt ihr eigenes Würfelgesicht
+   (1–6 Augen, Mitleid ein Herz) in ihrer Farbe – wie die kleinen Farbwürfel
+   neben dem Bahnsteig-Anzeiger. */
+.dr-die{width:22px;height:22px;flex-shrink:0;margin:0 5px 0 12px;align-self:center;
+  filter:drop-shadow(0 1px 2px var(--case-shadow));}
+.dr-rot .dr-die{align-self:flex-start;margin-top:5px;}
+.dr-rot{flex-wrap:wrap;align-items:flex-start;padding:12px 0 12px 4px;position:relative;}
 .dr-name{font-size:11px;font-weight:600;padding:0 10px;flex:0 0 62px;color:var(--case-ink2);
   font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.04em;}
 .dr-inputs{flex:1;display:flex;align-items:center;gap:6px;padding:8px 0;}
@@ -254,9 +258,8 @@ td.empty{color:var(--case-ink2);}
 .help-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
 .hc{background:var(--case);border:1px solid var(--case-edge);border-radius:var(--r);overflow:hidden;}
 .hc-head{display:flex;align-items:center;gap:12px;padding:14px 16px;}
-.hc-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:13px;font-weight:700;color:#101114;flex-shrink:0;
-  font-family:'Space Mono',monospace;}
+.hc-die{width:34px;height:34px;flex-shrink:0;
+  filter:drop-shadow(0 1px 3px var(--case-shadow));}
 .hc-name{font-size:14px;font-weight:700;font-family:'Oswald',sans-serif;
   text-transform:uppercase;letter-spacing:.03em;color:var(--case-ink);}
 .hc-formula{font-size:12px;margin-top:2px;font-family:'Space Mono',monospace;}
@@ -302,7 +305,7 @@ td.empty{color:var(--case-ink2);}
 :root:fullscreen, body:fullscreen{
   height:100%;overflow:hidden;
 }
-body:fullscreen .screen{
+body:fullscreen .screen-input{
   height:calc(100vh - 60px - 46px); /* Kopf (60px) + Tab-Leiste (46px) raus */
   padding:8px 12px 4px;
   display:flex;flex-direction:column;
@@ -322,7 +325,7 @@ body:fullscreen .dr{
 }
 body:fullscreen .dr:last-child{border-bottom:none;}
 body:fullscreen .dr-name{font-size:9px;flex:0 0 48px;}
-body:fullscreen .dr-stripe{width:7px;height:7px;margin:0 3px 0 10px;}
+body:fullscreen .dr-die{width:16px;height:16px;margin:0 3px 0 8px;}
 body:fullscreen select.ds{height:28px;font-size:14px;padding:0 22px 0 8px;max-width:100px;}
 body:fullscreen select.ds.ds-sm{height:26px;font-size:12px;min-width:44px;max-width:56px;padding:0 18px 0 6px;}
 body:fullscreen .dr-sublabel{font-size:8px;}
@@ -337,7 +340,7 @@ body:fullscreen .mini-toggle input:checked~.mini-slider::before{transform:transl
 body:fullscreen .dr-rot{flex-wrap:wrap;align-items:flex-start;padding:4px 0 4px 4px;flex:1.6;}
 body:fullscreen .dr-rot .dr-inputs{flex-wrap:wrap;gap:4px;padding:2px 0;}
 body:fullscreen .dr-rot .dr-name{padding-left:15px;}
-body:fullscreen .dr-rot .dr-stripe{align-self:flex-start;margin-top:3px;}
+body:fullscreen .dr-rot .dr-die{align-self:flex-start;margin-top:2px;}
 body:fullscreen .dr-rot .dr-result{padding-right:14px;}
 body:fullscreen .round-total{padding:8px 14px;margin-bottom:0;}
 body:fullscreen .rt-val{font-size:24px;padding:2px 12px;}
@@ -371,6 +374,28 @@ const DICE=[
 
 const DEF_ENTRY=()=>({gelb:0,lila:0,blau:0,blauGlitzer:false,
   rotWeiss:0,rotSchwarz:0,rotAnzahl:0,gruen:0,klar:0,mitleid:0});
+
+// ── Mini-Würfel je Kategorie ────────────────────────────────────────
+// Jede Farbe zeigt ihr eigenes Würfelgesicht (Augenzahl eindeutig je Farbe),
+// Mitleid ein Herz. Rein visuell, aus den Kategorie-Farben gebaut.
+const DIE_PIPS={
+  1:[[12,12]],
+  2:[[8,8],[16,16]],
+  3:[[8,8],[12,12],[16,16]],
+  4:[[8,8],[16,8],[8,16],[16,16]],
+  5:[[8,8],[16,8],[12,12],[8,16],[16,16]],
+  6:[[8,7],[16,7],[8,12],[16,12],[8,17],[16,17]],
+};
+// Welches Würfelgesicht zeigt welche Kategorie (Gelb 3, Lila 2, Blau 4, Rot 5, Grün 6, Klar 1)
+const DIE_FACE={gelb:3,lila:2,blau:4,rot:5,gruen:6,klar:1};
+function dieSVG(color,face,size){
+  const cls=size?`dr-die hc-die`:`dr-die`;
+  const pip=d=>'rgba(16,17,20,.85)';
+  if(face==='herz')
+    return`<svg class="${cls}" style="${size?`width:${size}px;height:${size}px;`:''}" viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" rx="6" fill="${color}"/><path d="M12 17.6 C9.6 15.4 6.8 13.2 6.8 10.6 A2.8 2.8 0 0 1 12 8.8 A2.8 2.8 0 0 1 17.2 10.6 C17.2 13.2 14.4 15.4 12 17.6 Z" fill="${pip()}"/></svg>`;
+  const pips=DIE_PIPS[face].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2" fill="${pip()}"/>`).join('');
+  return`<svg class="${cls}" style="${size?`width:${size}px;height:${size}px;`:''}" viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" rx="6" fill="${color}"/>${pips}</svg>`;
+}
 
 // ── State ──────────────────────────────────────────────────────────
 let state={
@@ -449,19 +474,19 @@ function renderInput(){
 
   const rows=`
   <div class="dr">
-    <div class="dr-stripe" style="background:var(--gelb)"></div>
+    ${dieSVG('var(--gelb)',3)}
     <div class="dr-name">Gelb</div>
     <div class="dr-inputs"><select class="ds" data-field="gelb">${opts(60,e.gelb)}</select></div>
     <div class="dr-result">${fmt(c.gelb)}</div>
   </div>
   <div class="dr">
-    <div class="dr-stripe" style="background:var(--lila)"></div>
+    ${dieSVG('var(--lila)',2)}
     <div class="dr-name">Lila</div>
     <div class="dr-inputs"><select class="ds" data-field="lila">${opts(60,e.lila)}</select>${lilaLabel}</div>
     <div class="dr-result">${fmt(c.lila)}</div>
   </div>
   <div class="dr">
-    <div class="dr-stripe" style="background:var(--blau)"></div>
+    ${dieSVG('var(--blau)',4)}
     <div class="dr-name">Blau</div>
     <div class="dr-inputs">
       <select class="ds" data-field="blau">${opts(60,e.blau)}</select>
@@ -477,7 +502,7 @@ function renderInput(){
     <div class="dr-result">${fmt(c.blau)}</div>
   </div>
   <div class="dr dr-rot">
-    <div class="dr-stripe" style="background:var(--rot);align-self:flex-start;margin-top:3px;"></div>
+    ${dieSVG('var(--rot)',5)}
     <div class="dr-name" style="padding-left:15px;">Rot</div>
     <div class="dr-inputs" style="flex-wrap:wrap;gap:8px;">
       <div style="display:flex;align-items:center;gap:4px;">
@@ -497,19 +522,19 @@ function renderInput(){
     <div class="dr-result${c.rot<0?' neg':''}" style="padding-right:14px;">${fmt(c.rot)}</div>
   </div>
   <div class="dr">
-    <div class="dr-stripe" style="background:var(--gruen)"></div>
+    ${dieSVG('var(--gruen)',6)}
     <div class="dr-name">Grün</div>
     <div class="dr-inputs"><select class="ds" data-field="gruen">${opts(60,e.gruen)}</select></div>
     <div class="dr-result">${fmt(c.gruen)}</div>
   </div>
   <div class="dr">
-    <div class="dr-stripe" style="background:var(--klar)"></div>
+    ${dieSVG('var(--klar)',1)}
     <div class="dr-name">Klar</div>
     <div class="dr-inputs"><select class="ds" data-field="klar">${opts(60,e.klar)}</select></div>
     <div class="dr-result">${fmt(c.klar)}</div>
   </div>
   <div class="dr">
-    <div class="dr-stripe" style="background:var(--mitleid)"></div>
+    ${dieSVG('var(--mitleid)','herz')}
     <div class="dr-name">Mitleid</div>
     <div class="dr-inputs"><select class="ds" data-field="mitleid">${opts(30,e.mitleid)}</select></div>
     <div class="dr-result">${fmt(c.mitleid)}</div>
@@ -523,7 +548,7 @@ function renderInput(){
        </button>`
     : `<button class="rnav-btn" data-action="nextround-nav" ${ri>=state.curRound?'disabled':''}>›</button>`;
 
-  return`<div class="screen">
+  return`<div class="screen screen-input">
     <div class="round-nav">
       <button class="rnav-btn" data-action="prevround" ${ri===0?'disabled':''}>‹</button>
       <div class="rnav-label">Runde ${ri+1}</div>
@@ -578,7 +603,7 @@ function renderHelp(){
   const cards=helpD.map(hd=>{
     const d=DICE.find(x=>x.key===hd.key);
     return`<div class="hc"><div class="hc-head">
-      <div class="hc-icon" style="background:${d.color};">W</div>
+      ${dieSVG(d.color,d.key==='mitleid'?'herz':DIE_FACE[d.key],34)}
       <div><div class="hc-name">${d.name}</div>
         <div class="hc-formula" style="color:${d.color};">${d.formula}</div></div>
     </div><div class="hc-body">${hd.desc}<div class="hc-ex">${hd.ex}</div></div></div>`;}).join('');
