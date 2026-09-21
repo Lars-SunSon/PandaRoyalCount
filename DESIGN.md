@@ -75,15 +75,19 @@ Mitleid `#f472b6` – je ein kleiner Punkt (Signallicht) statt einer Farbfläche
   Mini-Würfel-SVGs statt Farb-Punkte, jede Farbe mit eindeutigem Gesicht: Gelb 3,
   Lila 2, Blau 4, Rot 5, Grün 6, Klar 1 Augen, Mitleid ein Herz. Pips in
   `DIE_PIPS`, Zuordnung in `DIE_FACE` (dieselben Gesichter in Eingabe und Hilfe).
-- **Modus-Leiste** (`.mode-bar`, `.mode-btn`) – Umschalter Auto/Manuell über der
-  Werteliste; aktiver Modus als Akzent-Button im Gehäuse-Container. Der Modus ist
-  Partie-Eigenschaft: ab der ersten Eintragung schrumpft die Leiste (Body-Höhe 24 px,
-  Vollbild 18 px), Buttons wirken inaktiv (Opacity .55) – ein Tipp liefert nur noch
-  den Hinweis-Toast. Neue Partie via „Neues Spiel" entsperren.
+- **Setup-Dialog** (`.setup-overlay`, `.setup-card`, `.setup-opt`) – einmalige
+  Moduswahl zu Spielbeginn: beim ersten Laden und nach „Neues Spiel". Abgedunkelte
+  Halle mit Karten-Dialog, zwei wählbare Optionen (Auto / Manuell) mit Würfel-SVG,
+  Kurzerklärung des Unterschieds und dem Hinweis, dass die Wahl für die ganze
+  Partie gilt. Die Wahl speichert sich als `setupDone:true` im Spielstand – kein
+  Popup bei Wiederkommenden mit laufender Partie (Migration setzt `setupDone`
+  anhand vorhandener Daten).
 - **Manuelle Werteingabe** (`.mi`) – **Dropdown** pro Farbe im Manuell-Modus, gleiche
   Slot-Optik und Pfeil-Grafik wie die Auto-Selects; Wertebereich −600…600, bei Rot
   auch negativ (negatives Werte-`<option>`). Negativ-Werte im Select rot eingefärbt
-  (`.mi-neg`), Ergebnis-Flap bekommt wie gehabt `.neg`.
+  (`.mi-neg`), Ergebnis-Flap bekommt wie gehabt `.neg`. Keine Umschalt-Leiste mehr
+  in der Eingabe – der Modus ist Partie-Eigenschaft und wird nur im Setup-Dialog
+  gewählt.
 - **Gehäuse-Container** (`.die-list`, `.app-header`, `.tab-bar`, `.done-card`, `.hc`,
   `.help-rule`) – `--case`/`--case-edge`, dunkel unabhängig vom Theme.
 

@@ -192,18 +192,31 @@ select.ds{
 select.ds:focus{outline:none;border-color:var(--accent);}
 select.ds.ds-sm{min-width:54px;max-width:72px;font-size:14px;padding:0 22px 0 8px;}
 
-/* Mode-Umschalter: Auto (App rechnet die Formeln) vs Manuell (fertige Farbwerte).
-   Der Modus ist Partie-Eigenschaft: ab der ersten Eintragung eingefroren,
-   die Leiste zeigt das mit geschrumpften, inaktiven Buttons. */
-.mode-bar{display:flex;gap:6px;margin-bottom:10px;background:var(--case);
-  border:1px solid var(--case-edge);border-radius:var(--rs);padding:4px;}
-.mode-btn{flex:1;height:34px;border:none;background:none;color:var(--case-ink2);
-  font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.05em;cursor:pointer;border-radius:8px;
-  transition:all .15s;}
-.mode-btn.active{background:var(--accent);color:var(--accent-fg);}
-.mode-bar.locked .mode-btn{height:24px;font-size:10px;cursor:not-allowed;opacity:.55;}
-.mode-bar.locked .mode-btn.active{opacity:1;}
+/* Setup-Dialog: einmalige Moduswahl zu Spielbeginn (erste Ladung / neues Spiel).
+   Erklärt beide Modi, Wahl gilt für die ganze Partie – während der Partie kein
+   Umschalten mehr möglich, deshalb keine Umschalt-Leiste in der Übersicht. */
+.setup-overlay{position:fixed;inset:0;background:rgba(8,8,10,.72);backdrop-filter:blur(4px);
+  z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;}
+.setup-card{background:var(--case);border:1px solid var(--case-edge);border-radius:var(--r);
+  padding:20px 18px 16px;max-width:400px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5);}
+.setup-title{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--flap);margin-bottom:6px;}
+.setup-sub{font-size:12.5px;color:var(--case-ink2);line-height:1.5;margin-bottom:14px;}
+.setup-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.setup-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:var(--slot);border:1.5px solid var(--slot-border);border-radius:var(--rs);
+  padding:12px 14px;cursor:pointer;transition:all .15s;color:var(--slot-ink);}
+.setup-opt:hover{border-color:var(--accent);background:var(--accent-dim);}
+.setup-opt .dr-die{width:30px;height:30px;flex-shrink:0;filter:drop-shadow(0 1px 3px var(--case-shadow));}
+.setup-opt .so-name{font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--case-ink);}
+.setup-opt .so-desc{font-size:12px;color:var(--case-ink2);margin-top:2px;line-height:1.45;}
+.setup-opt .so-body{flex:1;min-width:0;}
+.setup-note{font-size:11.5px;color:var(--case-ink2);line-height:1.5;
+  border-top:1px solid var(--case-edge);padding-top:10px;}
+
+/* Mode-Umschalter (entfernt): der Modus wird im Setup-Dialog gewählt und gilt
+   für die ganze Partie – während der Partie wird nicht umgeschaltet. */
 
 /* Manuelle Wert-Eingabe: fertige Farbwerte über Dropdowns (gleiches Bedienschema
    wie im Auto-Modus); Rot bietet auch negative Werte (Weiß−Schwarz kann negativ sein) */
@@ -356,9 +369,6 @@ body.fs-compact .dr-name{font-size:9px;flex:0 0 48px;}
 body.fs-compact .dr-die{width:16px;height:16px;margin:0 3px 0 8px;}
 body:fullscreen select.ds{height:28px;font-size:14px;padding:0 22px 0 8px;max-width:100px;}
 body:fullscreen select.ds.ds-sm{height:26px;font-size:12px;min-width:44px;max-width:56px;padding:0 18px 0 6px;}
-body:fullscreen .mode-bar{margin-bottom:6px;}
-body:fullscreen .mode-btn{height:28px;font-size:11px;}
-body.fs-compact .mode-bar.locked .mode-btn{height:18px;font-size:9px;}
 body.fs-compact .dr-sublabel{font-size:8px;}
 body.fs-compact .dr-result{font-size:16px;padding:2px 8px;margin-right:8px;flex:0 0 52px;}
 body.fs-compact .dr-badge{font-size:9px;}
@@ -409,23 +419,6 @@ const DEF_ENTRY=()=>({gelb:0,lila:0,blau:0,blauGlitzer:false,
 // Manueller Modus: fertige Farbwerte (auch negativ bei Rot möglich)
 const DEF_MANUAL=()=>({gelb:0,lila:0,blau:0,rot:0,gruen:0,klar:0,mitleid:0});
 
-// Ab wann ist der Eingabemodus eingefroren? Einmal gesetzt, gilt er für die
-// ganze Partie: ab dem Moment, in dem in irgendeiner Runde etwas eingetragen
-// wurde (Auto: Einzelwerte, Manuell: Farbwerte). Ein neues Spiel ("Neues
-// Spiel") startet wieder ohne Lock.
-function modeLocked(){
-  if(state.phase==='done') return true;
-  for(let i=0;i<10;i++){ if(hasDataAt(i)) return true; }
-  return false;
-}
-function hasDataAt(i){
-  const e=state.entries[i],m=state.manual[i];
-  return num(e.gelb)||num(e.lila)||num(e.blau)||e.blauGlitzer||
-    num(e.rotWeiss)||num(e.rotSchwarz)||num(e.rotAnzahl)||
-    num(e.gruen)||num(e.klar)||num(e.mitleid)||
-    hasDataManual(m);
-}
-
 // ── Mini-Würfel je Kategorie ────────────────────────────────────────
 // Jede Farbe zeigt ihr eigenes Würfelgesicht (Augenzahl eindeutig je Farbe),
 // Mitleid ein Herz. Rein visuell, aus den Kategorie-Farben gebaut.
@@ -453,6 +446,7 @@ let state={
   round:0,
   curRound:0,
   phase:'game',
+  setupDone:false, // Modus wurde im Setup-Dialog gewählt (gilt für die Partie)
   entries:Array.from({length:10},()=>DEF_ENTRY()),
   manual:Array.from({length:10},()=>DEF_MANUAL()),
   mode:'auto', // 'auto' = App rechnet Formeln | 'manual' = fertige Farbwerte
@@ -469,8 +463,21 @@ function loadState(){
         state.manual=Array.from({length:10},()=>DEF_MANUAL());
       state.manual=state.manual.map(m=>Object.assign(DEF_MANUAL(),m||{}));
       if(state.mode!=='manual') state.mode='auto';
+      // Migration: Spielstände ohne setupDone haben den Modus bereits in
+      // Benutzung – nicht nochmal mit dem Dialog nerven.
+      if(state.setupDone!==true) state.setupDone=!!hasAnyData();
     }
   }catch(e){}
+}
+// Hat irgendeine Runde irgendwelche Daten (Auto- oder Manuell-Blatt)?
+function hasAnyData(){
+  for(let i=0;i<10;i++){
+    const e=state.entries[i],m=state.manual[i];
+    if(num(e.gelb)||num(e.lila)||num(e.blau)||e.blauGlitzer||
+       num(e.rotWeiss)||num(e.rotSchwarz)||num(e.rotAnzahl)||
+       num(e.gruen)||num(e.klar)||num(e.mitleid)||hasDataManual(m)) return true;
+  }
+  return false;
 }
 
 // ── Compute ─────────────────────────────────────────────────────────
@@ -670,10 +677,6 @@ function renderInput(){
       ${rightNav}
     </div>
     <div class="rnav-dots">${dots}</div>
-    <div class="mode-bar${modeLocked()?' locked':''}" title="${modeLocked()?'Modus ist für diese Partie festgelegt':'Modus nur vor der ersten Eintragung wählbar – danach gilt er für die ganze Partie'}">
-      <button class="mode-btn${manual?'':' active'}" data-action="mode" data-mode="auto">Auto</button>
-      <button class="mode-btn${manual?' active':''}" data-action="mode" data-mode="manual">Manuell</button>
-    </div>
     <div class="die-list" style="position:relative;">${rows}</div>
     <div class="round-total">
       <span class="rt-label">Runde ${ri+1} gesamt</span>
@@ -787,6 +790,35 @@ function renderTabBar(){
     </button>`).join('')}</div>`;
 }
 
+// ── Setup-Dialog (Moduswahl zu Spielbeginn) ────────────────────────
+// Erscheint beim ersten Laden der Website und nach „Neues Spiel". Erklärt
+// beide Modi, die Wahl gilt für die gesamte Partie – danach kein Umschalten.
+function renderSetup(){
+  return`<div class="setup-overlay">
+    <div class="setup-card">
+      <div class="setup-title">Neue Partie einrichten</div>
+      <div class="setup-sub">Wie willst du deine Werte eintragen? Die Wahl gilt für die <strong>ganze Partie</strong> – ein Umschalten während des Spiels ist nicht möglich.</div>
+      <div class="setup-opts">
+        <button class="setup-opt" data-action="setup-mode" data-mode="auto">
+          ${dieSVG('var(--gelb)',3,30)}
+          <div class="so-body">
+            <div class="so-name">Automatisch</div>
+            <div class="so-desc">Du trägst die gewürfelten Einzelwerte ein, die App rechnet die Formeln jeder Farbe aus (Lila ×2, Blau ×2 mit Glitzer, Rot-Formel …).</div>
+          </div>
+        </button>
+        <button class="setup-opt" data-action="setup-mode" data-mode="manual">
+          ${dieSVG('var(--lila)',2,30)}
+          <div class="so-body">
+            <div class="so-name">Manuell</div>
+            <div class="so-desc">Du trägst die <strong>fertigen Farbwerte</strong> selbst ein (per Dropdown, bei Rot auch negativ) – für wen das Kopfrechnen okay ist.</div>
+          </div>
+        </button>
+      </div>
+      <div class="setup-note">Rundensumme, Tabelle und Gesamtpunktzahl rechnet die App in beiden Modi automatisch.</div>
+    </div>
+  </div>`;
+}
+
 // ── Main render ───────────────────────────────────────────────────
 function render(){
   const app=document.getElementById('app');
@@ -795,7 +827,11 @@ function render(){
   else if(state.tab==='help') screen=renderHelp();
   else if(state.phase==='done') screen=renderDoneCard();
   else screen=renderInput();
-  app.innerHTML=renderHeader()+screen+renderTabBar();
+  const showSetup=!state.setupDone&&state.phase!=='done';
+  app.innerHTML=renderHeader()
+    +(showSetup?renderSetup():'')
+    +screen
+    +renderTabBar();
   // Vollbild-Kompaktmodus als Body-Klasse markieren: nur Vollbild UND
   // Eingabe-Tab. Robust gegen fehlende :has()-Unterstützung.
   const compact=fsActive()&&state.tab==='input'&&state.phase!=='done';
@@ -912,29 +948,12 @@ function handleClick(ev){
   if(!el)return;
   const a=el.dataset.action;
   if(a==='tab'){state.tab=el.dataset.tab;saveState();render();}
-  else if(a==='mode'){
-    // Modus ist Partie-Eigenschaft: nur wählbar, solange noch nichts
-    // eingetragen wurde (frisches Spiel). Danach eingefroren.
-    if(modeLocked()){
-      toast('Der Modus ist für diese Partie festgelegt und lässt sich nicht mehr wechseln. Der Wechsel ist nur vor der ersten Eintragung möglich.');
-      render();
-      return;
-    }
-    // Moduswechsel: Auto-Werte als Startpunkt ins Manuell-Blatt übernehmen,
-    // damit Summen gleich weiterlaufen (nur wenn Manuell-Blatt noch leer)
-    if(el.dataset.mode!==state.mode){
-      state.mode=el.dataset.mode;
-      if(state.mode==='manual'){
-        const ri=state.round;
-        const m=state.manual[ri];
-        if(!hasDataManual(m)){
-          const c=computeEntry(state.entries[ri]);
-          m.gelb=c.gelb;m.lila=c.lila;m.blau=c.blau;m.rot=c.rot;
-          m.gruen=c.gruen;m.klar=c.klar;m.mitleid=c.mitleid;
-        }
-      }
-      saveState();render();
-    }
+  else if(a==='setup-mode'){
+    // Setup-Dialog: einmalige Moduswahl zu Spielbeginn. Gilt für die ganze
+    // Partie – während der Partie gibt es keinen Wechsel mehr.
+    state.mode=el.dataset.mode;
+    state.setupDone=true;
+    saveState();render();
   }
   else if(a==='prevround'){if(state.round>0){state.round--;saveState();render();}}
   else if(a==='nextround-nav'){if(state.round<state.curRound){state.round++;saveState();render();}}
@@ -948,11 +967,11 @@ function handleClick(ev){
   else if(a==='wake'){toggleWake();}
   else if(a==='fs'){toggleFS();}
   else if(a==='reset'){
-    state={round:0,curRound:0,phase:'game',mode:'auto',
+    state={round:0,curRound:0,phase:'game',mode:'auto',setupDone:false,
       entries:Array.from({length:10},()=>DEF_ENTRY()),
       manual:Array.from({length:10},()=>DEF_MANUAL()),tab:'input'};
     saveState();render();
-    toast('Neues Spiel – Modus ist wieder frei wählbar (Auto oder Manuell).');
+    toast('Neues Spiel eingerichtet – wähle den Eingabemodus für diese Partie.');
   }
 }
 

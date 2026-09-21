@@ -42,19 +42,13 @@ nicht von Internet abhängen dürfen.
 
 ## Capabilities and Constraints
 
-- **Zwei Eingabemodi, Modus gilt für die ganze Partie:** Im **Auto-Modus** trägt man
-  die gewürfelten Einzelwerte ein und die App rechnet die farbspezifischen Formeln aus
-  (Gelb, Lila ×2, Blau ggf. ×2 mit Glitzerwürfel, Rot als (Weiß−Schwarz)×Anzahl,
-  Grün, Klar, Mitleid). Im **Manuell-Modus** trägt man die fertigen Farbwerte über
-  **Dropdowns** ein (gleiches Bedienschema wie Auto; bei Rot sind negative Werte
-  wählbar). Unabhängig vom Modus rechnet die App **immer automatisch**: Rundensumme,
-  Rundenverlauf/Tabelle und Gesamtsumme.
-- Der Modus wird einmalig **zu Spielbeginn** gewählt (vor der ersten Eintragung).
-  Ab der ersten Eintragung ist er für die Partie fixiert; ein erneuter Tipp auf die
-  Modus-Leiste gibt einen Hinweis-Toast. „Neues Spiel" setzt die Wahl wieder frei.
-- Wechsel Auto→Manuell vor der ersten Eintragung übernimmt die berechneten Farbwerte
-  als Startwert ins manuelle Blatt (nur wenn dieses noch leer ist) – Summen laufen
-  ohne Bruch weiter.
+- **Zwei Eingabemodi, gewählt im Setup-Dialog:** Beim **ersten Laden** und nach
+  „Neues Spiel" fragt ein Dialog, wie eingetragen wird: **Auto** (Einzelwerte
+  eintragen, App rechnet die Formeln jeder Farbe aus) oder **Manuell** (fertige
+  Farbwerte per **Dropdown**, bei Rot auch negativ). Die Wahl gilt für die
+  **ganze Partie** – während der Partie wird nicht umgeschaltet, es gibt dafür
+  keine Umschalt-Leiste. Unabhängig vom Modus rechnet die App **immer
+  automatisch**: Rundensumme, Rundenverlauf/Tabelle und Gesamtsumme.
 - Bestehende Funktionalität (10 Runden, Rundentabelle, Hilfe-Screen,
   Hell-/Dunkelmodus, Wake-Lock, Vollbildmodus, localStorage-Persistenz) bleibt
   unverändert und ist nicht zu vereinfachen oder wegzulassen.
