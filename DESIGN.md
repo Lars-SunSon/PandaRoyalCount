@@ -77,11 +77,15 @@ Mitleid `#f472b6` – je ein kleiner Punkt (Signallicht) statt einer Farbfläche
   `DIE_PIPS`, Zuordnung in `DIE_FACE` (dieselben Gesichter in Eingabe und Hilfe).
 - **Setup-Dialog** (`.setup-overlay`, `.setup-card`, `.setup-opt`) – einmalige
   Moduswahl zu Spielbeginn: beim ersten Laden und nach „Neues Spiel". Abgedunkelte
-  Halle mit Karten-Dialog, zwei wählbare Optionen (Auto / Manuell) mit Würfel-SVG,
-  Kurzerklärung des Unterschieds und dem Hinweis, dass die Wahl für die ganze
-  Partie gilt. Die Wahl speichert sich als `setupDone:true` im Spielstand – kein
-  Popup bei Wiederkommenden mit laufender Partie (Migration setzt `setupDone`
-  anhand vorhandener Daten).
+  Halle mit Karten-Dialog, Titel **„Neues Spiel beginnen"** und Einleitungsfrage
+  zentriert, zwei wählbare Optionen (Auto / Manuell) mit Würfel-SVG und
+  Kurzerklärung des Unterschieds. **Abbrechen-Button** unten schließt den Dialog
+  und setzt die bestehende Partie fort. Die Wahl speichert sich als
+  `setupDone:true` im Spielstand – kein Popup bei Wiederkommenden mit laufender
+  Partie (Migration setzt `setupDone` anhand vorhandener Daten).
+  „Neues Spiel" löscht nichts sofort: es setzt `pendingNewGame` und öffnet den
+  Dialog; der Reset passiert erst bei der Moduswahl, Abbrechen rettet die alte
+  Partie.
 - **Manuelle Werteingabe** (`.mi`) – **Dropdown** pro Farbe im Manuell-Modus, gleiche
   Slot-Optik und Pfeil-Grafik wie die Auto-Selects; Wertebereich −600…600, bei Rot
   auch negativ (negatives Werte-`<option>`). Negativ-Werte im Select rot eingefärbt

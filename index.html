@@ -200,8 +200,10 @@ select.ds.ds-sm{min-width:54px;max-width:72px;font-size:14px;padding:0 22px 0 8p
 .setup-card{background:var(--case);border:1px solid var(--case-edge);border-radius:var(--r);
   padding:20px 18px 16px;max-width:400px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5);}
 .setup-title{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.05em;color:var(--flap);margin-bottom:6px;}
-.setup-sub{font-size:12.5px;color:var(--case-ink2);line-height:1.5;margin-bottom:14px;}
+  text-transform:uppercase;letter-spacing:.05em;color:var(--flap);margin-bottom:6px;
+  text-align:center;}
+.setup-sub{font-size:12.5px;color:var(--case-ink2);line-height:1.5;margin-bottom:14px;
+  text-align:center;}
 .setup-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
 .setup-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
   background:var(--slot);border:1.5px solid var(--slot-border);border-radius:var(--rs);
@@ -213,7 +215,12 @@ select.ds.ds-sm{min-width:54px;max-width:72px;font-size:14px;padding:0 22px 0 8p
 .setup-opt .so-desc{font-size:12px;color:var(--case-ink2);margin-top:2px;line-height:1.45;}
 .setup-opt .so-body{flex:1;min-width:0;}
 .setup-note{font-size:11.5px;color:var(--case-ink2);line-height:1.5;
-  border-top:1px solid var(--case-edge);padding-top:10px;}
+  border-top:1px solid var(--case-edge);padding-top:10px;text-align:center;}
+.setup-cancel{width:100%;height:38px;margin-top:10px;background:none;
+  border:1.5px solid var(--slot-border);border-radius:var(--rs);color:var(--case-ink2);
+  font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.04em;cursor:pointer;transition:all .15s;}
+.setup-cancel:hover{border-color:var(--accent);color:var(--accent);}
 
 /* Mode-Umschalter (entfernt): der Modus wird im Setup-Dialog gewählt und gilt
    für die ganze Partie – während der Partie wird nicht umgeschaltet. */
@@ -447,6 +454,7 @@ let state={
   curRound:0,
   phase:'game',
   setupDone:false, // Modus wurde im Setup-Dialog gewählt (gilt für die Partie)
+  pendingNewGame:false, // „Neues Spiel" angefragt, Reset passiert bei Moduswahl
   entries:Array.from({length:10},()=>DEF_ENTRY()),
   manual:Array.from({length:10},()=>DEF_MANUAL()),
   mode:'auto', // 'auto' = App rechnet Formeln | 'manual' = fertige Farbwerte
@@ -793,11 +801,13 @@ function renderTabBar(){
 // ── Setup-Dialog (Moduswahl zu Spielbeginn) ────────────────────────
 // Erscheint beim ersten Laden der Website und nach „Neues Spiel". Erklärt
 // beide Modi, die Wahl gilt für die gesamte Partie – danach kein Umschalten.
+// Abbrechen schließt den Dialog und setzt die bestehende Partie fort
+// (wichtig nach „Neues Spiel": der Reset passiert erst bei der Moduswahl).
 function renderSetup(){
   return`<div class="setup-overlay">
     <div class="setup-card">
-      <div class="setup-title">Neue Partie einrichten</div>
-      <div class="setup-sub">Wie willst du deine Werte eintragen? Die Wahl gilt für die <strong>ganze Partie</strong> – ein Umschalten während des Spiels ist nicht möglich.</div>
+      <div class="setup-title">Neues Spiel beginnen</div>
+      <div class="setup-sub">Wie willst du deine Werte eintragen?</div>
       <div class="setup-opts">
         <button class="setup-opt" data-action="setup-mode" data-mode="auto">
           ${dieSVG('var(--gelb)',3,30)}
@@ -815,6 +825,7 @@ function renderSetup(){
         </button>
       </div>
       <div class="setup-note">Rundensumme, Tabelle und Gesamtpunktzahl rechnet die App in beiden Modi automatisch.</div>
+      <button class="setup-cancel" data-action="setup-cancel">Abbrechen – Partie fortsetzen</button>
     </div>
   </div>`;
 }
@@ -827,7 +838,9 @@ function render(){
   else if(state.tab==='help') screen=renderHelp();
   else if(state.phase==='done') screen=renderDoneCard();
   else screen=renderInput();
-  const showSetup=!state.setupDone&&state.phase!=='done';
+  // Setup-Dialog: bei anstehendem Neuem Spiel immer (auch über dem Endstand),
+  // sonst wenn der Modus für diese Partie noch nicht gewählt wurde.
+  const showSetup=state.pendingNewGame||(!state.setupDone&&state.phase!=='done');
   app.innerHTML=renderHeader()
     +(showSetup?renderSetup():'')
     +screen
@@ -949,10 +962,25 @@ function handleClick(ev){
   const a=el.dataset.action;
   if(a==='tab'){state.tab=el.dataset.tab;saveState();render();}
   else if(a==='setup-mode'){
-    // Setup-Dialog: einmalige Moduswahl zu Spielbeginn. Gilt für die ganze
-    // Partie – während der Partie gibt es keinen Wechsel mehr.
-    state.mode=el.dataset.mode;
-    state.setupDone=true;
+    // Moduswahl im Setup-Dialog: startet die neue Partie (erst hier wird
+    // zurückgesetzt, „Neues Spiel" öffnet nur den Dialog). Gilt für die
+    // ganze Partie – während der Partie gibt es keinen Wechsel mehr.
+    if(state.pendingNewGame){
+      state={round:0,curRound:0,phase:'game',mode:el.dataset.mode,setupDone:true,
+        pendingNewGame:false,
+        entries:Array.from({length:10},()=>DEF_ENTRY()),
+        manual:Array.from({length:10},()=>DEF_MANUAL()),tab:'input'};
+    }else{
+      state.mode=el.dataset.mode;
+      state.setupDone=true;
+    }
+    saveState();render();
+  }
+  else if(a==='setup-cancel'){
+    // Dialog schließen, bestehende Partie fortsetzen. Nach „Neues Spiel"
+    // bleibt der alte Stand unverändert erhalten – nichts wurde gelöscht.
+    state.pendingNewGame=false;
+    state.setupDone=hasAnyData()||state.phase==='done';
     saveState();render();
   }
   else if(a==='prevround'){if(state.round>0){state.round--;saveState();render();}}
@@ -967,11 +995,13 @@ function handleClick(ev){
   else if(a==='wake'){toggleWake();}
   else if(a==='fs'){toggleFS();}
   else if(a==='reset'){
-    state={round:0,curRound:0,phase:'game',mode:'auto',setupDone:false,
-      entries:Array.from({length:10},()=>DEF_ENTRY()),
-      manual:Array.from({length:10},()=>DEF_MANUAL()),tab:'input'};
+    // „Neues Spiel" macht nichts kaputt: alte Partie bleibt erhalten, nur der
+    // Setup-Dialog öffnet sich. Der eigentliche Reset passiert bei der
+    // Moduswahl im Dialog. Abbrechen setzt die alte Partie fort.
+    state.pendingNewGame=true;
+    state.setupDone=false;
     saveState();render();
-    toast('Neues Spiel eingerichtet – wähle den Eingabemodus für diese Partie.');
+    toast('Alte Partie bleibt erhalten, bis du im Dialog einen Modus wählst.');
   }
 }
 
