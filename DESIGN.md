@@ -76,9 +76,14 @@ Mitleid `#f472b6` – je ein kleiner Punkt (Signallicht) statt einer Farbfläche
   Lila 2, Blau 4, Rot 5, Grün 6, Klar 1 Augen, Mitleid ein Herz. Pips in
   `DIE_PIPS`, Zuordnung in `DIE_FACE` (dieselben Gesichter in Eingabe und Hilfe).
 - **Modus-Leiste** (`.mode-bar`, `.mode-btn`) – Umschalter Auto/Manuell über der
-  Werteliste; aktiver Modus als Akzent-Button im Gehäuse-Container.
-- **Manuelle Werteingabe** (`.mi`) – number-Feld pro Farbe im Manuell-Modus,
-  negativ erlaubt (Rot kann Minuspunkte haben), Slot-Look wie die Selects.
+  Werteliste; aktiver Modus als Akzent-Button im Gehäuse-Container. Der Modus ist
+  Partie-Eigenschaft: ab der ersten Eintragung schrumpft die Leiste (Body-Höhe 24 px,
+  Vollbild 18 px), Buttons wirken inaktiv (Opacity .55) – ein Tipp liefert nur noch
+  den Hinweis-Toast. Neue Partie via „Neues Spiel" entsperren.
+- **Manuelle Werteingabe** (`.mi`) – **Dropdown** pro Farbe im Manuell-Modus, gleiche
+  Slot-Optik und Pfeil-Grafik wie die Auto-Selects; Wertebereich −600…600, bei Rot
+  auch negativ (negatives Werte-`<option>`). Negativ-Werte im Select rot eingefärbt
+  (`.mi-neg`), Ergebnis-Flap bekommt wie gehabt `.neg`.
 - **Gehäuse-Container** (`.die-list`, `.app-header`, `.tab-bar`, `.done-card`, `.hc`,
   `.help-rule`) – `--case`/`--case-edge`, dunkel unabhängig vom Theme.
 

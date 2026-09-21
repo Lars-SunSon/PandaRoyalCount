@@ -192,7 +192,9 @@ select.ds{
 select.ds:focus{outline:none;border-color:var(--accent);}
 select.ds.ds-sm{min-width:54px;max-width:72px;font-size:14px;padding:0 22px 0 8px;}
 
-/* Mode-Umschalter: Auto (App rechnet die Formeln) vs Manuell (fertige Farbwerte) */
+/* Mode-Umschalter: Auto (App rechnet die Formeln) vs Manuell (fertige Farbwerte).
+   Der Modus ist Partie-Eigenschaft: ab der ersten Eintragung eingefroren,
+   die Leiste zeigt das mit geschrumpften, inaktiven Buttons. */
 .mode-bar{display:flex;gap:6px;margin-bottom:10px;background:var(--case);
   border:1px solid var(--case-edge);border-radius:var(--rs);padding:4px;}
 .mode-btn{flex:1;height:34px;border:none;background:none;color:var(--case-ink2);
@@ -200,16 +202,22 @@ select.ds.ds-sm{min-width:54px;max-width:72px;font-size:14px;padding:0 22px 0 8p
   text-transform:uppercase;letter-spacing:.05em;cursor:pointer;border-radius:8px;
   transition:all .15s;}
 .mode-btn.active{background:var(--accent);color:var(--accent-fg);}
+.mode-bar.locked .mode-btn{height:24px;font-size:10px;cursor:not-allowed;opacity:.55;}
+.mode-bar.locked .mode-btn.active{opacity:1;}
 
-/* Manuelle Wert-Eingabe: fertige Farbwerte direkt eintippen */
+/* Manuelle Wert-Eingabe: fertige Farbwerte über Dropdowns (gleiches Bedienschema
+   wie im Auto-Modus); Rot bietet auch negative Werte (Weiß−Schwarz kann negativ sein) */
 .mi{appearance:none;-webkit-appearance:none;height:36px;
   background:var(--slot);border:1.5px solid var(--slot-border);border-radius:var(--rs);
-  padding:0 10px;color:var(--slot-ink);font-family:'Space Mono',monospace;font-size:16px;
-  font-weight:700;font-variant-numeric:tabular-nums;text-align:right;
-  flex:1;max-width:120px;min-width:0;}
+  padding:0 28px 0 10px;color:var(--slot-ink);font-family:'Space Mono',monospace;font-size:16px;
+  font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b8a86' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 8px center;
+  flex:1;max-width:120px;min-width:68px;}
 .mi:focus{outline:none;border-color:var(--accent);}
-.mi::-webkit-outer-spin-button,.mi::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-.mi{-moz-appearance:textfield;}
+select.mi{text-align:right;}
+.mi-neg{color:var(--rot);}
 
 /* Labels inside row (for Rot sub-labels) */
 .dr-sublabel{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
@@ -350,11 +358,12 @@ body:fullscreen select.ds{height:28px;font-size:14px;padding:0 22px 0 8px;max-wi
 body:fullscreen select.ds.ds-sm{height:26px;font-size:12px;min-width:44px;max-width:56px;padding:0 18px 0 6px;}
 body:fullscreen .mode-bar{margin-bottom:6px;}
 body:fullscreen .mode-btn{height:28px;font-size:11px;}
+body.fs-compact .mode-bar.locked .mode-btn{height:18px;font-size:9px;}
 body.fs-compact .dr-sublabel{font-size:8px;}
 body.fs-compact .dr-result{font-size:16px;padding:2px 8px;margin-right:8px;flex:0 0 52px;}
 body.fs-compact .dr-badge{font-size:9px;}
 body.fs-compact .dr-glitter{font-size:11px;gap:4px;}
-body.fs-compact .mi{height:28px;font-size:14px;padding:0 8px;}
+body.fs-compact .mi{height:28px;font-size:14px;padding:0 24px 0 8px;max-width:100px;min-width:56px;}
 body.fs-compact .mini-toggle{width:30px;height:17px;}
 body.fs-compact .mini-slider{width:30px;height:17px;}
 body.fs-compact .mini-slider::before{width:11px;height:11px;left:3px;top:3px;}
@@ -399,6 +408,23 @@ const DEF_ENTRY=()=>({gelb:0,lila:0,blau:0,blauGlitzer:false,
   rotWeiss:0,rotSchwarz:0,rotAnzahl:0,gruen:0,klar:0,mitleid:0});
 // Manueller Modus: fertige Farbwerte (auch negativ bei Rot möglich)
 const DEF_MANUAL=()=>({gelb:0,lila:0,blau:0,rot:0,gruen:0,klar:0,mitleid:0});
+
+// Ab wann ist der Eingabemodus eingefroren? Einmal gesetzt, gilt er für die
+// ganze Partie: ab dem Moment, in dem in irgendeiner Runde etwas eingetragen
+// wurde (Auto: Einzelwerte, Manuell: Farbwerte). Ein neues Spiel ("Neues
+// Spiel") startet wieder ohne Lock.
+function modeLocked(){
+  if(state.phase==='done') return true;
+  for(let i=0;i<10;i++){ if(hasDataAt(i)) return true; }
+  return false;
+}
+function hasDataAt(i){
+  const e=state.entries[i],m=state.manual[i];
+  return num(e.gelb)||num(e.lila)||num(e.blau)||e.blauGlitzer||
+    num(e.rotWeiss)||num(e.rotSchwarz)||num(e.rotAnzahl)||
+    num(e.gruen)||num(e.klar)||num(e.mitleid)||
+    hasDataManual(m);
+}
 
 // ── Mini-Würfel je Kategorie ────────────────────────────────────────
 // Jede Farbe zeigt ihr eigenes Würfelgesicht (Augenzahl eindeutig je Farbe),
@@ -585,27 +611,35 @@ function autoRows(e,c){
   </div>`;
 }
 
-// ── Zeilen-Builder: Manuell (fertige Farbwerte, negativ erlaubt) ──
+// ── Zeilen-Builder: Manuell (fertige Farbwerte per Dropdown, gleiches
+//    Bedienschema wie Auto-Modus) ─────────────────────────────────────
+// Wertebereiche je Farbe orientieren sich an den Formel-Ausgängen:
+// Rot kann negativ sein (Weiß−Schwarz) × Anzahl, der Rest nicht.
+function manualOpts(neg,selected){
+  let h='';
+  if(neg) for(let i=-600;i<0;i++) h+=`<option value="${i}"${i==selected?' selected':''}>${i}</option>`;
+  for(let i=0;i<=600;i++) h+=`<option value="${i}"${i==selected?' selected':''}>${i}</option>`;
+  return h;
+}
 function manualRows(m){
-  const row=(key,die,face,min,max)=>{
+  const row=(key,die,face,neg)=>{
     const v=num(m[key]);
     return`<div class="dr">
     ${dieSVG(die,face)}
     <div class="dr-name">${key==='mitleid'?'Mitleid':key.charAt(0).toUpperCase()+key.slice(1)}</div>
     <div class="dr-inputs">
-      <input type="number" class="mi" data-mfield="${key}" min="${min}" max="${max}"
-        step="1" value="${v!==0?v:''}" placeholder="0" inputmode="numeric">
+      <select class="mi${v<0?' mi-neg':''}" data-mfield="${key}">${manualOpts(neg,v)}</select>
     </div>
     <div class="dr-result">${fmt(v)}</div>
   </div>`;
   };
-  return row('gelb','var(--gelb)',3,-999,999)
-    +row('lila','var(--lila)',2,-999,999)
-    +row('blau','var(--blau)',4,-999,999)
-    +row('rot','var(--rot)',5,-999,999)
-    +row('gruen','var(--gruen)',6,-999,999)
-    +row('klar','var(--klar)',1,-999,999)
-    +row('mitleid','var(--mitleid)','herz',-999,999);
+  return row('gelb','var(--gelb)',3,false)
+    +row('lila','var(--lila)',2,false)
+    +row('blau','var(--blau)',4,false)
+    +row('rot','var(--rot)',5,true)
+    +row('gruen','var(--gruen)',6,false)
+    +row('klar','var(--klar)',1,false)
+    +row('mitleid','var(--mitleid)','herz',false);
 }
 
 // ── Render: Input screen ──────────────────────────────────────────
@@ -636,7 +670,7 @@ function renderInput(){
       ${rightNav}
     </div>
     <div class="rnav-dots">${dots}</div>
-    <div class="mode-bar">
+    <div class="mode-bar${modeLocked()?' locked':''}" title="${modeLocked()?'Modus ist für diese Partie festgelegt':'Modus nur vor der ersten Eintragung wählbar – danach gilt er für die ganze Partie'}">
       <button class="mode-btn${manual?'':' active'}" data-action="mode" data-mode="auto">Auto</button>
       <button class="mode-btn${manual?' active':''}" data-action="mode" data-mode="manual">Manuell</button>
     </div>
@@ -698,7 +732,7 @@ function renderHelp(){
     <div class="help-rule"><div class="help-rule-title">1. Würfeln &amp; Panda-Token</div>
       <div class="help-rule-body">Alle werfen <strong>gleichzeitig einmal</strong>. Höchster gelber Gesamtwert → Panda-Token. Gleichstand → gelb nochmals werfen.</div></div>
     <div class="help-rule"><div class="help-rule-title">2. Punkte ausrechnen</div>
-      <div class="help-rule-body">Jede Farbe nach Formel auswerten und eintragen – im <strong>Auto-Modus</strong> rechnet die App die Formeln, im <strong>Manuell-Modus</strong> trägst du die fertigen Farbwerte selbst ein. Rundensumme und Gesamtwert rechnet die App immer automatisch.</div></div>
+      <div class="help-rule-body">Jede Farbe nach Formel auswerten und eintragen – vor der Partie entscheiden: <strong>Auto-Modus</strong> rechnet die Formeln, <strong>Manuell-Modus</strong> nimmt fertige Farbwerte per Dropdown. Die Wahl gilt für die ganze Partie und ist nach der ersten Eintragung fixiert. Rundensumme und Gesamtwert rechnet die App immer automatisch.</div></div>
     <div class="help-rule"><div class="help-rule-title">3. Mitleidswürfel (nicht in Runde 10)</div>
       <div class="help-rule-body">Wer in dieser Runde die <strong>wenigsten Punkte</strong> hat, bekommt einen Mitleidswürfel für die nächste Runde.</div></div>
     <div class="help-rule"><div class="help-rule-title">4. Klare Würfel tauschen (nicht in Runde 10)</div>
@@ -789,6 +823,8 @@ function handleManualInput(ev){
   const row=el.closest('.dr');
   const rv=row&&row.querySelector('.dr-result');
   if(rv){rv.textContent=fmt(c[f]);rv.className='dr-result'+(c[f]<0?' neg':'');flipEl(rv);}
+  // Negativ-Wert im Dropdown markieren (nur Rot kann negativ werden)
+  el.classList.toggle('mi-neg',c[f]<0);
   // Rundensumme + Gesamtklappe
   const rtv=document.getElementById('rt-val');
   if(rtv){rtv.textContent=fmt(c.total);flipEl(rtv);}
@@ -877,6 +913,13 @@ function handleClick(ev){
   const a=el.dataset.action;
   if(a==='tab'){state.tab=el.dataset.tab;saveState();render();}
   else if(a==='mode'){
+    // Modus ist Partie-Eigenschaft: nur wählbar, solange noch nichts
+    // eingetragen wurde (frisches Spiel). Danach eingefroren.
+    if(modeLocked()){
+      toast('Der Modus ist für diese Partie festgelegt und lässt sich nicht mehr wechseln. Der Wechsel ist nur vor der ersten Eintragung möglich.');
+      render();
+      return;
+    }
     // Moduswechsel: Auto-Werte als Startpunkt ins Manuell-Blatt übernehmen,
     // damit Summen gleich weiterlaufen (nur wenn Manuell-Blatt noch leer)
     if(el.dataset.mode!==state.mode){
@@ -905,10 +948,11 @@ function handleClick(ev){
   else if(a==='wake'){toggleWake();}
   else if(a==='fs'){toggleFS();}
   else if(a==='reset'){
-    state={round:0,curRound:0,phase:'game',mode:state.mode,
+    state={round:0,curRound:0,phase:'game',mode:'auto',
       entries:Array.from({length:10},()=>DEF_ENTRY()),
       manual:Array.from({length:10},()=>DEF_MANUAL()),tab:'input'};
     saveState();render();
+    toast('Neues Spiel – Modus ist wieder frei wählbar (Auto oder Manuell).');
   }
 }
 
