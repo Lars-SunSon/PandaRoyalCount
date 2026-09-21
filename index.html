@@ -977,10 +977,11 @@ function handleClick(ev){
     saveState();hideToast();render();
   }
   else if(a==='setup-cancel'){
-    // Dialog schließen, bestehende Partie fortsetzen. Nach „Neues Spiel"
-    // bleibt der alte Stand unverändert erhalten – nichts wurde gelöscht.
+    // Dialog schließen, mit dem aktuellen Stand fortsetzen. setupDone immer
+    // auf true: Auch bei leerer Partie darf der Dialog sonst nicht wieder
+    // aufploppen (war der Bug – ohne Eintragung kam er sofort zurück).
     state.pendingNewGame=false;
-    state.setupDone=hasAnyData()||state.phase==='done';
+    state.setupDone=true;
     saveState();hideToast();render();
   }
   else if(a==='prevround'){if(state.round>0){state.round--;saveState();render();}}
