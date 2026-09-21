@@ -974,14 +974,14 @@ function handleClick(ev){
       state.mode=el.dataset.mode;
       state.setupDone=true;
     }
-    saveState();render();
+    saveState();hideToast();render();
   }
   else if(a==='setup-cancel'){
     // Dialog schließen, bestehende Partie fortsetzen. Nach „Neues Spiel"
     // bleibt der alte Stand unverändert erhalten – nichts wurde gelöscht.
     state.pendingNewGame=false;
     state.setupDone=hasAnyData()||state.phase==='done';
-    saveState();render();
+    saveState();hideToast();render();
   }
   else if(a==='prevround'){if(state.round>0){state.round--;saveState();render();}}
   else if(a==='nextround-nav'){if(state.round<state.curRound){state.round++;saveState();render();}}
@@ -998,10 +998,11 @@ function handleClick(ev){
     // „Neues Spiel" macht nichts kaputt: alte Partie bleibt erhalten, nur der
     // Setup-Dialog öffnet sich. Der eigentliche Reset passiert bei der
     // Moduswahl im Dialog. Abbrechen setzt die alte Partie fort.
+    // Bewusst KEIN Toast: er würde unter dem Dialog-Overlay versteckt starten
+    // und erst nach dem Schließen des Dialogs aufploppen.
     state.pendingNewGame=true;
     state.setupDone=false;
     saveState();render();
-    toast('Alte Partie bleibt erhalten, bis du im Dialog einen Modus wählst.');
   }
 }
 
@@ -1095,6 +1096,11 @@ function toast(msg){
   t.textContent=msg;t.style.display='block';
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>{t.style.display='none';},3800);
+}
+function hideToast(){
+  clearTimeout(toastTimer);
+  const t=document.getElementById('pr-toast');
+  if(t) t.style.display='none';
 }
 
 function savePrefs(){try{localStorage.setItem('pr3_wake',wakeWanted?'1':'0');}catch(e){}}

@@ -85,7 +85,10 @@ Mitleid `#f472b6` – je ein kleiner Punkt (Signallicht) statt einer Farbfläche
   Partie (Migration setzt `setupDone` anhand vorhandener Daten).
   „Neues Spiel" löscht nichts sofort: es setzt `pendingNewGame` und öffnet den
   Dialog; der Reset passiert erst bei der Moduswahl, Abbrechen rettet die alte
-  Partie.
+  Partie. Kein Toast beim Öffnen des Dialogs (würde unter dem Overlay versteckt
+  starten und erst nach dem Schließen sichtbar – das war der „Geister-Toast").
+  Moduswahl und Abbrechen räumen einen evtl. laufenden Toast aktiv weg
+  (`hideToast()`), bevor neu gerendert wird.
 - **Manuelle Werteingabe** (`.mi`) – **Dropdown** pro Farbe im Manuell-Modus, gleiche
   Slot-Optik und Pfeil-Grafik wie die Auto-Selects; Wertebereich −600…600, bei Rot
   auch negativ (negatives Werte-`<option>`). Negativ-Werte im Select rot eingefärbt
